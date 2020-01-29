@@ -13,9 +13,8 @@ class PlayerClient
     private static Scanner scanner;
     //------------------------------------------------------------------------------------------------------------------
 
-    private static DatagramSocket clientSocket;
-    private static UserID serverID;
-    private static boolean TEST_BOOLEAN = true;
+    private static DatagramSocket clientSocket;  // Client Socket used for network communication
+    private static UserID serverID;              // Object containing essential info on communication with server
 
     // Opcode's, used in packet header's to distinguish the purpose of a packet
     private static final byte RRQ  = 0;      // Read Request
@@ -47,10 +46,9 @@ class PlayerClient
             System.out.println("Success");
         }
 
-        while(TEST_BOOLEAN){ listen(); }
+        listen();
 
         closeSocket();
-
     }
     //------------------------------------------------------------------------------------------------------------------
 
@@ -117,42 +115,49 @@ class PlayerClient
      * Listens to a potential request, and continues with the appropriate sequence of operations based on the request
      * @exception Exception
      */
-    public static void listen() throws Exception{
+    public static Object listen() throws Exception{
         byte [] ackData, requestData = new byte[10];
-        boolean noMsg = true;
         byte opCode, objType;
         int objSize;
         DatagramPacket rqPacket, ackPacket;
 
 
-        // Receive the request from the server
+        // Receive request from server (e.g. Write Request, Read Request, etc.)
         clientSocket.setSoTimeout(0);
         rqPacket = new DatagramPacket(requestData, requestData.length);
         clientSocket.receive(rqPacket);
         clientSocket.setSoTimeout(300);
 
-
+        // Ack message is a copy of the request from server
         ackData = rqPacket.getData();
 
-        // From the requestPacket determine the opCode, object type, and object size
+        // Determine the request's opCode, object type, and object size
         opCode = ackData[1];
         objType = ackData[3];
         objSize = (((int) ackData[5]) << 24) + (((int)ackData[6]) << 16) + (((int)ackData[7]) << 8) + (int) ackData[8];
 
-
-        System.out.println("Opcode: " + opCode + "\nobjType: " + objType + "\nobject size: " + objSize);
-
-
+        // Determine which logic branch to execute as determined by the request's opCode
         switch(opCode){
             case RRQ:
                 break;
-            case WRQ:
+            case WRQ:  // WRQ: The server is attempting to write an object to
                 ackPacket = new DatagramPacket(ackData, ackData.length, rqPacket.getAddress(), rqPacket.getPort());
                 clientSocket.send(ackPacket);
+                byte [] object = writeRequest(objType, objSize, rqPacket.getAddress(), rqPacket.getPort());
 
-                // Quick Check to compare the combat maps byte array to see if any data is missing
-                byte [] combatMap = writeRequest(objType, objSize, rqPacket.getAddress(), rqPacket.getPort());
-                for(int i = 0; i < combatMap.length; i++ ){ System.out.print(combatMap[i]); }
+                // Switch statement used to convert
+                switch(objType){
+                    case CMP:
+                        Object obj = CombatMap.convertToCombatMap(object);
+                        return obj;
+                    case ITM:
+                        break;
+                    case CHMP:
+                        break;
+                    default:
+                        break;
+                }
+
                 break;
             case DATA:
                 break;
@@ -161,7 +166,9 @@ class PlayerClient
         }
 
 
-
+        // TEMPORARY
+        return null;
+        // TEMPORARY
     }
 
 
