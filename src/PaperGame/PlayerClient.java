@@ -23,9 +23,13 @@ class PlayerClient
     private static final byte DATA = 3;      // Data Packet
 
     // Object Type Code's, used in packet header's to distinguish the object type of a given piece of Data
-    private static final byte CMP  = 4;      // Combat Map Object
-    private static final byte ITM  = 5;      // Item Object
-    private static final byte CHMP = 6;      // Champion Object
+    private static final byte CMAP = 4;      // Combat Map Object
+    private static final byte WPN  = 5;      // Weapon Object
+    private static final byte AMR  = 6;      // Armor Object
+    private static final byte CNSM = 7;      // Consumable Object
+    private static final byte CHMP = 8;      // Champion Object
+    private static final byte CRTR = 9;      // Creature Object
+
 
     private static final int PAYLOAD      = 503;  // Size of the Data payload per packet
     private static final int PAYLOAD_HEAD = 9;    // Index the payload begin's in a data packet
@@ -138,8 +142,10 @@ class PlayerClient
 
         // Determine which logic branch to execute as determined by the request's opCode
         switch(opCode){
+            // Read Request
             case RRQ:
                 break;
+            // Write Request
             case WRQ:  // WRQ: The server is attempting to write an object to
                 ackPacket = new DatagramPacket(ackData, ackData.length, rqPacket.getAddress(), rqPacket.getPort());
                 clientSocket.send(ackPacket);
@@ -147,13 +153,33 @@ class PlayerClient
 
                 // Switch statement used to convert
                 switch(objType){
-                    case CMP:
+
+                    // CombatMap
+                    case CMAP:
                         Object obj = CombatMap.convertToCombatMap(object);
                         return obj;
-                    case ITM:
+
+                    // Weapon
+                    case WPN:
                         break;
+
+                    // Armor
+                    case AMR:
+                        break;
+
+                    // Consumable
+                    case CNSM:
+                        break;
+
+                    // Champion
                     case CHMP:
                         break;
+
+                    // Creature
+                    case CRTR:
+                        break;
+
+                    // Default
                     default:
                         break;
                 }
