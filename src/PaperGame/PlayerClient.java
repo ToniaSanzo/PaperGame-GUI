@@ -119,14 +119,18 @@ class PlayerClient
      */
     public static void listen() throws Exception{
         byte [] ackData, requestData = new byte[10];
+        boolean noMsg = true;
         byte opCode, objType;
         int objSize;
         DatagramPacket rqPacket, ackPacket;
 
+
         // Receive the request from the server
-        clientSocket.setSoTimeout(300);
+        clientSocket.setSoTimeout(0);
         rqPacket = new DatagramPacket(requestData, requestData.length);
         clientSocket.receive(rqPacket);
+        clientSocket.setSoTimeout(300);
+
 
         ackData = rqPacket.getData();
 
@@ -172,11 +176,11 @@ class PlayerClient
      * @return The object sent from the server in the form of a byte array
      */
     public static byte[] writeRequest(byte objType, int objSize, InetAddress ipAddr, int port){
-        byte [] data = new byte[512], ackData = new byte[10], objData = new byte[objSize];
-        ByteBuffer buffer = ByteBuffer.allocate(objSize);
-
+        byte [] data = new byte[512];
         int finalBlockNo, rcvdPacketNo, block = 1;
-        DatagramPacket dataPacket, ackPacket;
+        DatagramPacket dataPacket;
+
+        ByteBuffer buffer = ByteBuffer.allocate(objSize);
 
         // Determine the number of blocks being sent from the server
         if(objSize % PAYLOAD == 0) finalBlockNo = objSize / PAYLOAD;
@@ -188,31 +192,23 @@ class PlayerClient
             dataPacket = new DatagramPacket(data, data.length, ipAddr, port);
             try { clientSocket.receive(dataPacket); }
             catch (Exception ex){ continue; }
-            System.out.print("RECEIVED: ");
-            DMServer.printByteArray(dataPacket.getData());
 
             // Convert the received packet into a byte array, determine packet no of the received packet
             data = dataPacket.getData();
             rcvdPacketNo = ((int)data[4] << 24) + ((int)data[5] << 16) + ((int)data[6] << 8) + (int)data[7];
-            System.out.println("received data packet number : " + rcvdPacketNo);
 
             // Confirm that the received packet is next in the sequence
             if(rcvdPacketNo == block){
                 // Insert the payload into the byte buffer
                 if(block * 503 > objSize) {
-                    byte [] testData = Arrays.copyOfRange(data, PAYLOAD_HEAD, objSize - ((block - 1) * (PAYLOAD + PAYLOAD_HEAD)));
-                    buffer.put(Arrays.copyOfRange(data, PAYLOAD_HEAD, objSize - ((block - 1) * (PAYLOAD + PAYLOAD_HEAD))));
-                } else { buffer.put(Arrays.copyOfRange(data, PAYLOAD_HEAD, PAYLOAD + PAYLOAD_HEAD)); }
+                    buffer.put(Arrays.copyOfRange(data, PAYLOAD_HEAD, (objSize + PAYLOAD_HEAD) - ((block - 1) * PAYLOAD)));
+                } else { buffer.put(Arrays.copyOfRange(data, PAYLOAD_HEAD, (PAYLOAD + PAYLOAD_HEAD))); }
 
                 // Send the Ack back to the server, and increment the block number
                 sendAck(rcvdPacketNo, objType,ipAddr, port);
                 block++;
             }
         }
-
-
-        TEST_BOOLEAN = false;
-
 
         // Return the object as a byte array
         return buffer.array();
