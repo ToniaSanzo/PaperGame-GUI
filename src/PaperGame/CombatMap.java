@@ -302,10 +302,9 @@ public class CombatMap implements Serializable{
             object = in.readObject();
 
             // Close the input streams
-            if (in != null && bain != null) {
-                in.close();
-                bain.close();
-            }
+            in.close();
+            bain.close();
+
         }
         // Print the stack trace when either an IOException or ClassNotFoundException is caught
         catch(Exception ex){ ex.printStackTrace(); }
@@ -316,11 +315,10 @@ public class CombatMap implements Serializable{
 
 
     /**
-     * Method prints the dimensions and the name of the combat map
+     * Method prints dimensions and name of the combat map
      */
     public void printMap(){
-        System.out.println("Width: " + cols);
-        System.out.println("Height: " + rows);
-        System.out.println("Name: " + name);
+        // Print CombatMap information
+        System.out.println("Width: " + cols + " Height: " + rows + "\nName: " + name);
     }
 }

@@ -147,37 +147,43 @@ class PlayerClient
                 break;
             // Write Request
             case WRQ:  // WRQ: The server is attempting to write an object to
+                Object rtnObj;
                 ackPacket = new DatagramPacket(ackData, ackData.length, rqPacket.getAddress(), rqPacket.getPort());
                 clientSocket.send(ackPacket);
                 byte [] object = writeRequest(objType, objSize, rqPacket.getAddress(), rqPacket.getPort());
 
-                // Switch statement used to convert
+                // Convert received byte array's into Objects
                 switch(objType){
 
                     // CombatMap
                     case CMAP:
-                        Object obj = CombatMap.convertToCombatMap(object);
-                        return obj;
+                        rtnObj = CombatMap.convertToCombatMap(object);
+                        return rtnObj;
 
                     // Weapon
                     case WPN:
-                        break;
+                        rtnObj = Weapon.convertToWeapon(object);
+                        return rtnObj;
 
                     // Armor
                     case AMR:
-                        break;
+                        rtnObj = Armor.convertToArmor(object);
+                        return rtnObj;
 
                     // Consumable
                     case CNSM:
-                        break;
+                        rtnObj = Consumable.convertToConsumable(object);
+                        return rtnObj;
 
                     // Champion
                     case CHMP:
-                        break;
+                        rtnObj = Champion.convertToChampion(object);
+                        return rtnObj;
 
                     // Creature
                     case CRTR:
-                        break;
+                        rtnObj = Creature.convertToCreature(object);
+                        return rtnObj;
 
                     // Default
                     default:

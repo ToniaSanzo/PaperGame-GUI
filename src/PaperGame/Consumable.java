@@ -1,6 +1,6 @@
 package PaperGame;
 
-import java.io.Serializable;
+import java.io.*;
 
 public class Consumable implements Item, Serializable {
     private static final int WEIGHT = 1;  // All consumables weight is one
@@ -158,5 +158,76 @@ public class Consumable implements Item, Serializable {
      */
     public String getName(){
         return name;
+    }
+
+
+    /**
+     * Convert a Consumable into a byte array
+     *
+     * @param consumable Consumable that will be converted into a byte array
+     * @return Returns the byte array of the converted Consumable
+     */
+    public static byte[] convertToBytes(Consumable consumable){
+        byte [] byteBuffer = null;  // Instantiate the byte array
+
+        try {
+            // Open the output streams that will be used to convert the Consumable into a byte array
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+
+            // Convert the object into a byte array
+            oos.writeObject(consumable);
+            oos.flush();
+            byteBuffer = baos.toByteArray();
+
+            // Close the output streams
+            baos.close();
+            oos.close();
+        } catch(IOException ex){
+            ex.printStackTrace();
+        }
+        // Return the byte array of the Consumable
+        return byteBuffer;
+    }
+
+
+    /**
+     * Convert a Serialized Consumable's byte array into a Consumable
+     *
+     * @param byteBuffer A serialized byte array containing a Consumable
+     * @return Returns a de-serialized Consumable
+     */
+    public static Consumable convertToConsumable(byte [] byteBuffer){
+        Object object = null; // Instantiate object
+
+        try {
+            // Open the input Streams that will be used to convert a byte array into a Consumable
+            ByteArrayInputStream bain = new ByteArrayInputStream(byteBuffer);
+            ObjectInputStream in = new ObjectInputStream(bain);
+
+            // Convert the byte array into the object
+            object = in.readObject();
+
+            // Close the input streams
+            in.close();
+            bain.close();
+        }
+        // Print the stack trace when either an IOException or ClassNotFoundException is caught
+        catch(Exception ex){ ex.printStackTrace(); }
+
+        // Return Consumable contained within the byte array
+        return (Consumable)object;
+    }
+
+
+    /**
+     * Method prints the stats and the name of the Consumable
+     */
+    public void printConsumable(){
+        // Print Consumable Information
+        System.out.println("Strength: " + getStrength() + " Agility: " + getAgility() + " Intelligence " +
+                getIntelligence() + " Fortitude: " + getFortitude() + "\nHealth: " + getHealth() + " Energy: " +
+                getEnergy() + " Mana: " + getMana() + " Gold: " + getGold() + " Experience Points: " +
+                getExperiencePts() + "\nName: " + getName());
     }
 }

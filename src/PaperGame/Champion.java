@@ -1,5 +1,6 @@
 package PaperGame;
 
+import java.io.*;
 import java.lang.Math;
 import java.util.HashMap;
 
@@ -415,6 +416,46 @@ public class Champion extends Creature {
 
 
     /**
+     * Returns the champion's gold
+     *
+     * @return gold - a short that represents the champion's gold
+     */
+    public short getGold() { return gold; }
+
+
+    /**
+     * Returns the champion's level
+     *
+     * @return level - a short that represents the champion's gold
+     */
+    public short getLevel() { return level; }
+
+
+    /**
+     * Returns the champion's experience points
+     *
+     * @return experiencePts - a int that represents the champion's experience points
+     */
+    public int getExperiencePts() { return experiencePts; }
+
+
+    /**
+     * Returns the champion's total inventory weight
+     *
+     * @return totalInventoryWeight - a int that represents the champion's total inventory capacity
+     */
+    public int getTotalInventoryWeight() { return totalInventoryWeight; }
+
+
+    /**
+     * Returns the champion's current inventory weight
+     *
+     * @return currentInventoryWeight - a int that represents the champion's current inventory weight
+     */
+    public int getCurrentInventoryWeight() { return currentInventoryWeight; }
+
+
+    /**
      * Depending on the instance variables of the consumable object, will update the Champions statistics based on those
      * values, and remove the consumable from the Champions inventory
      *
@@ -483,5 +524,79 @@ public class Champion extends Creature {
     public String toString(){
         String rtnStr = getName() + " the " + championRace + " " +  championClass;
         return rtnStr;
+    }
+
+
+    /**
+     * Convert a Champion into a byte array
+     *
+     * @param champion Champion that will be converted into a byte array
+     * @return Returns the byte array of the converted Champion
+     */
+    public static byte[] convertToBytes(Champion champion){
+        byte [] byteBuffer = null;  // Instantiate the byte array
+
+        try {
+            // Open the output streams that will be used to convert the Champion into a byte array
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+
+            // Convert the object into a byte array
+            oos.writeObject(champion);
+            oos.flush();
+            byteBuffer = baos.toByteArray();
+
+            // Close the output streams
+            baos.close();
+            oos.close();
+        } catch(IOException ex){
+            ex.printStackTrace();
+        }
+        // Return the byte array of the Champion
+        return byteBuffer;
+    }
+
+
+    /**
+     * Convert a Serialized Champion's byte array into a Champion
+     *
+     * @param byteBuffer A serialized byte array containing a champion
+     * @return Returns a de-serialized Champion
+     */
+    public static Champion convertToChampion(byte [] byteBuffer){
+        Object object = null; // Instantiate object
+
+        try {
+            // Open the input Streams that will be used to convert a byte array into a Champion
+            ByteArrayInputStream bain = new ByteArrayInputStream(byteBuffer);
+            ObjectInputStream in = new ObjectInputStream(bain);
+
+            // Convert the byte array into the object
+            object = in.readObject();
+
+            // Close the input streams
+            in.close();
+            bain.close();
+        }
+        // Print the stack trace when either an IOException or ClassNotFoundException is caught
+        catch(Exception ex){ ex.printStackTrace(); }
+
+        // Return Champion contained within the byte array
+        return (Champion)object;
+    }
+
+
+    /**
+     * Method prints the stats and the name of the Champion
+     */
+    public void printChampion(){
+        // Print Champion information
+        System.out.println("Strength: " + getStrength() + " Agility: " + getAgility() + " Intelligence " +
+                getIntelligence() + " Fortitude: " + getFortitude() + "\nRace: " + getRace() + " class: " + getClass() +
+                "\nGold: " + getGold() + " Level: " + getLevel() + " Experience Points: " + getExperiencePts() +
+                "\nTotal Health: " + getTotalHealth() + " Current Health: " + getCurrentHealth() + " Total Mana: " +
+                getTotalMana() + " Current Mana: " + getCurrentMana() + " Total Energy: " + getTotalEnergy() +
+                " Current Energy: " + getCurrentEnergy() + "\nTotal Inventory Weight: " + getTotalInventoryWeight() +
+                " Current Inventory Weight: " + getCurrentInventoryWeight() + "\nName: " + getName());
     }
 }

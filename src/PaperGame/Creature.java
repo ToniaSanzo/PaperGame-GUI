@@ -1,6 +1,6 @@
 package PaperGame;
 
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -134,6 +134,35 @@ public class Creature implements Serializable {
      */
     public short getCurrentHealth() { return currentHealth; }
 
+    /**
+     * @return returns the creatures total mana
+     */
+    public short getTotalMana() { return totalMana; }
+
+
+    /**
+     * @return returns the creature's current mana
+     */
+    public short getCurrentMana() { return currentMana; }
+
+
+    /**
+     * @return returns the creature's total energy
+     */
+    public short getTotalEnergy() { return totalEnergy; }
+
+
+    /**
+     * @return returns the creature's current energy
+     */
+    public short getCurrentEnergy() { return currentEnergy; }
+
+
+    /**
+     * @return returns the creature's inventory
+     */
+    public ArrayList<Item> getInventory() { return inventory; }
+
 
     /**
      * @return returns the creatures weapon
@@ -198,6 +227,8 @@ public class Creature implements Serializable {
      * @param totalHealth1 the creatures total health is set equal to totalHealth1
      */
     public void setTotalHealth(short totalHealth1){
+        if(totalHealth1 < currentHealth)
+            currentHealth = totalHealth1;
         totalHealth = totalHealth1;
     }
 
@@ -208,6 +239,38 @@ public class Creature implements Serializable {
     public void setCurrentHealth(short currentHealth1){
         currentHealth = currentHealth1;
     }
+
+
+    /**
+     * @param totalMana1 the creatures total mana is set equal to totalMana1
+     */
+    public void setTotalMana(short totalMana1) {
+        if(totalMana1 < currentMana)
+            currentMana = totalMana1;
+        totalMana = totalMana1;
+    }
+
+
+    /**
+     * @param currentMana1 the creatures currentMana is set equal to currentMana1
+     */
+    public void setCurrentMana(short currentMana1) { currentMana = currentMana1; }
+
+
+    /**
+     * @param totalEnergy1 the creatures totalEnergy is set equal to totalEnergy1
+     */
+    public void setTotalEnergy(short totalEnergy1){
+        if(totalEnergy1 < currentEnergy)
+            currentEnergy = totalEnergy1;
+        totalEnergy = totalEnergy1;
+    }
+
+
+    /**
+     * @param currentEnergy1 the creatures currentEnergy is set equal to currentEnergy1
+     */
+    public void setCurrentEnergy(short currentEnergy1) { currentEnergy = currentEnergy1; }
 
 
     /**
@@ -579,4 +642,76 @@ public class Creature implements Serializable {
      * @param item The item to be removed from the inventory
      */
     public void removeItem(Item item){ inventory.remove(item); }
+
+
+    /**
+     * Convert a Creature into a byte array
+     *
+     * @param creature Creature that will be converted into a byte array
+     * @return Returns the byte array of the converted Creature
+     */
+    public static byte[] convertToBytes(Creature creature){
+        byte [] byteBuffer = null;  // Instantiate the byte array
+
+        try {
+            // Open the output streams that will be used to convert the Creature into a byte array
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+
+            // Convert the object into a byte array
+            oos.writeObject(creature);
+            oos.flush();
+            byteBuffer = baos.toByteArray();
+
+            // Close the output streams
+            baos.close();
+            oos.close();
+        } catch(IOException ex){
+            ex.printStackTrace();
+        }
+        // Return the byte array of the Creature
+        return byteBuffer;
+    }
+
+
+    /**
+     * Convert a Serialized Creature's byte array into a Creature
+     *
+     * @param byteBuffer A serialized byte array containing a creature
+     * @return Returns a de-serialized Creature
+     */
+    public static Creature convertToCreature(byte [] byteBuffer){
+        Object object = null; // Instantiate object
+
+        try {
+            // Open the input Streams that will be used to convert a byte array into a Creature
+            ByteArrayInputStream bain = new ByteArrayInputStream(byteBuffer);
+            ObjectInputStream in = new ObjectInputStream(bain);
+
+            // Convert the byte array into the object
+            object = in.readObject();
+
+            // Close the input streams
+            in.close();
+            bain.close();
+        }
+        // Print the stack trace when either an IOException or ClassNotFoundException is caught
+        catch(Exception ex){ ex.printStackTrace(); }
+
+        // Return Creature contained within the byte array
+        return (Creature)object;
+    }
+
+
+    /**
+     * Method prints the stats and the name of the Creature
+     */
+    public void printCreature(){
+        // Print Creature information
+        System.out.println("Strength: " + getStrength() + " Agility: " + getAgility() + " Intelligence " +
+                getIntelligence() + " Fortitude: " + getFortitude() + "\nTotal Health: " + getTotalHealth() +
+                " Current Health: " + getCurrentHealth() + " Total Mana: " + getTotalMana() + " Current Mana: " +
+                getCurrentMana() + " Total Energy: " + getTotalEnergy() + " Current Energy: " + getCurrentEnergy() +
+                "\nName: " + getName());
+    }
 }
