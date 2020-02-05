@@ -79,9 +79,9 @@ public class Creature implements Serializable {
      */
     public Creature(){
         inventory         = new ArrayList<Item>();
-        this.strength     = 1;
-        this.agility      = 1;
-        this.intelligence = 1;
+        this.strength     = 0;
+        this.agility      = 0;
+        this.intelligence = 0;
         this.fortitude    = 1;
         this.weapon       = null;
         this.name         = "wild turtle";

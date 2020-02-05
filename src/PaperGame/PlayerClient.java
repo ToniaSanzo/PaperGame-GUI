@@ -50,7 +50,7 @@ class PlayerClient
             System.out.println("Success");
         }
 
-        listen();
+        for(int i = 0; i < 6; i++){ listen(); }
 
         closeSocket();
     }
@@ -134,11 +134,12 @@ class PlayerClient
 
         // Ack message is a copy of the request from server
         ackData = rqPacket.getData();
+        ByteBuffer byteBuffer = ByteBuffer.wrap(ackData);
 
         // Determine the request's opCode, object type, and object size
         opCode = ackData[1];
         objType = ackData[3];
-        objSize = (((int) ackData[5]) << 24) + (((int)ackData[6]) << 16) + (((int)ackData[7]) << 8) + (int) ackData[8];
+        objSize = byteBuffer.getInt(5);
 
         // Determine which logic branch to execute as determined by the request's opCode
         switch(opCode){
@@ -158,31 +159,38 @@ class PlayerClient
                     // CombatMap
                     case CMAP:
                         rtnObj = CombatMap.convertToCombatMap(object);
+                        CombatMap.convertToCombatMap(object).printMap();
                         return rtnObj;
 
                     // Weapon
                     case WPN:
                         rtnObj = Weapon.convertToWeapon(object);
+                        Weapon.convertToWeapon(object).printWeapon();  // PRINT STATEMENT
                         return rtnObj;
 
                     // Armor
                     case AMR:
                         rtnObj = Armor.convertToArmor(object);
+                        Armor.convertToArmor(object).printArmor();
                         return rtnObj;
 
                     // Consumable
                     case CNSM:
                         rtnObj = Consumable.convertToConsumable(object);
+                        Consumable.convertToConsumable(object).printConsumable();  // PRINT STATEMENT
                         return rtnObj;
 
                     // Champion
                     case CHMP:
+                        DMServer.printByteArray(object);
                         rtnObj = Champion.convertToChampion(object);
+                        Champion.convertToChampion(object).printChampion();
                         return rtnObj;
 
                     // Creature
                     case CRTR:
                         rtnObj = Creature.convertToCreature(object);
+                        Creature.convertToCreature(object).printCreature();
                         return rtnObj;
 
                     // Default
@@ -219,6 +227,7 @@ class PlayerClient
         int finalBlockNo, rcvdPacketNo, block = 1;
         DatagramPacket dataPacket;
 
+        System.out.println("Object Size: " + objSize);
         ByteBuffer buffer = ByteBuffer.allocate(objSize);
 
         // Determine the number of blocks being sent from the server
@@ -234,6 +243,8 @@ class PlayerClient
 
             // Convert the received packet into a byte array, determine packet no of the received packet
             data = dataPacket.getData();
+            DMServer.printByteArray(data);
+            System.out.println("Block Received: " + block);
             rcvdPacketNo = ((int)data[4] << 24) + ((int)data[5] << 16) + ((int)data[6] << 8) + (int)data[7];
 
             // Confirm that the received packet is next in the sequence
@@ -245,6 +256,7 @@ class PlayerClient
 
                 // Send the Ack back to the server, and increment the block number
                 sendAck(rcvdPacketNo, objType,ipAddr, port);
+                System.out.println("Ack sent: " + rcvdPacketNo);
                 block++;
             }
         }

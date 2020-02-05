@@ -17,9 +17,12 @@ class DMServer
     private static final byte DATA = 3;          // Data Packet
 
     // Object Type Code's, used in packet header's to distinguish the object type of a given piece of Data
-    private static final byte CMP  = 4;          // Combat Map Object
-    private static final byte ITM  = 5;          // Item Object
-    private static final byte CHMP = 6;          // Champion Object
+    private static final byte CMAP = 4;      // Combat Map Object
+    private static final byte WPN  = 5;      // Weapon Object
+    private static final byte AMR  = 6;      // Armor Object
+    private static final byte CNSM = 7;      // Consumable Object
+    private static final byte CHMP = 8;      // Champion Object
+    private static final byte CRTR = 9;      // Creature Object
 
     private static final int WINDOW_SIZE = 4;    // Window size for Sliding Window Protocol
     private static final int PAYLOAD     = 503;  // Size of the Data payload per packet
@@ -28,6 +31,19 @@ class DMServer
     {
         ArrayList<String> ipAddresses = getIP();
         CombatMap cMap = new CombatMap(3,5,"TEST_1394$");
+
+        Weapon wpn = new Weapon((short)3,(short)3,(short)3, (short) 3, 30,
+                "Testing Great$word", Item.KNIGHT,(short) 1);
+        Consumable cnsm = new Consumable("Everything's Zero");
+        Armor armr = new Armor((short)1, (short)2, (short)3, (short)4, 30, "@rm0r_9494",
+                Armor.PANTS);
+        Champion chmp = new Champion("Archer", "Elf", "$en$3i_T3$T");
+        Creature crtr = new Creature();
+
+
+        printByteArray(Champion.convertToBytes(chmp));
+
+
         UserID userID;
 
         for(String tString: ipAddresses){ System.out.println("IP Address: " + tString); }
@@ -35,7 +51,19 @@ class DMServer
         openSocket(0);      // Open the server socket
         userID = clientJoin();      // Let the client join the server
         cMap.printMap();            // Print the map
-        writeObject(userID, cMap);  // Write Combat Map to the server
+        System.out.println("WRITING COMBAT MAP");
+        writeObject(userID, cMap);  // Write Combat Map to client
+        System.out.println("WRITING WEAPON");
+        writeObject(userID, wpn);   // Write Weapon to client
+        System.out.println("WRITING cnsm");
+        writeObject(userID, cnsm);  // Write Consumable to client
+        System.out.println("WRITING ARMOR");
+        writeObject(userID, armr);  // Write Armor to client
+        System.out.println("WRITING CHAMPION");
+        writeObject(userID, chmp);  // Write Champion to client
+        System.out.println("WRITING CREATURE");
+        writeObject(userID, crtr);  // Write Creature to client
+        System.out.println("DONE WRITING");
         closeSocket();              // Close the server socket
     }
 
@@ -95,14 +123,10 @@ class DMServer
         hashCode = byteBuffer.getInt(index);
         byteBuffer.clear();
 
-        // Check the user name
-        System.out.println("\nUser name: " + userName + "\nHashCode: " + hashCode + "\n");
         UserID userID = new UserID(userName, hashCode, receivePacket.getAddress(), receivePacket.getPort());
 
-        // Create the Ack packet to send to the user
+        // Create and send Ack packet to client
         data = clientJoinAckArray(hashCode);
-
-        // Send the Ack to the client
         DatagramPacket sendPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
         serverSocket.send(sendPacket);
 
@@ -130,7 +154,7 @@ class DMServer
 
 
     /**
-     * Create a ack packet for when a player joins the group
+     * Create an ack packet when a player joins the group
      *
      * @param hashCode The new player's hash code
      * @return A byte array containing the new player's hash code within a 4 byte-array
@@ -144,7 +168,7 @@ class DMServer
 
     /**
      * Write an object to a playerClient Socket, This is done by sending a write request packet to the client, receiving
-     * an Ack packet and than sequentially sending the objects data in packets sized to 500 bytes with a 491 byte payload.
+     * an Ack packet and than sequentially sending the objects data in packets sized to 512 bytes with a 503 byte payload.
      *
      * @param userID UserID of the client
      * @param combatMap Combat Map sent to the client
@@ -152,24 +176,16 @@ class DMServer
      */
     public static void writeObject(UserID userID, CombatMap combatMap) throws Exception{
         byte [] data, wrqData = new byte[10], ackData = new byte[10];
-        int index, ackPacketNo, objSize, finalBlockNo = 0, sequenceNo = 0, windowHead = 1, block = 1;
-        boolean ackFail, pendingMessage = true, finalAckNotReceived = true;
+        int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
+        boolean ackFail;
         DatagramPacket dataPacket, sendPacket, ackPacket;
 
-
-
         // Convert the Combat Map into a byte array
-        byte [] cMapBytes = CombatMap.convertToBytes(combatMap);
-        objSize = cMapBytes.length;
-
-        // TESTING: Print Statement to see if the Client and server's message's are consistent
-        System.out.println("\nObject Size: " + objSize);
-        for(int i = 0; i < objSize; i++){ System.out.print(cMapBytes[i]); }
-        System.out.println();
-        //------------------------------------------------------------------------------------
+        byte [] objBytes = CombatMap.convertToBytes(combatMap);
+        objSize = objBytes.length;
 
         // Determine the number of blocks needed to be sent to the client
-        if(cMapBytes.length % 503 == 0) finalBlockNo = objSize / 503;
+        if(objBytes.length % 503 == 0) finalBlockNo = objSize / 503;
         else finalBlockNo = (objSize / 503) + 1;
 
         // Create write request packet:
@@ -178,38 +194,35 @@ class DMServer
         // |  0  | opc |  0  | type|  0  |      object size      |  0  |
         //  -----------------------------------------------------------
         wrqData[1] = WRQ;  // Set the opcode to write request
-        wrqData[3] = CMP;  // Set object type to Combat Map
+        wrqData[3] = CMAP;  // Set object type to Combat Map
 
         // Add the object's length to the write request packet
         ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putInt(cMapBytes.length);
+        buffer.putInt(objBytes.length);
         wrqData[5] = buffer.get(0);
         wrqData[6] = buffer.get(1);
         wrqData[7] = buffer.get(2);
         wrqData[8] = buffer.get(3);
 
         do {
-            // Write Request byte array is put into a datagram packet, than sent to the client
+            // Send Write Request to client
             sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
-            System.out.print("SENDING INITIAL WRITE REQUEST: ");
-            printByteArray(sendPacket.getData());
             serverSocket.send(sendPacket);
 
-            // Receive the Ack packet from the client
+            // Receive Ack from client
             ackPacket = new DatagramPacket(ackData, ackData.length);
             serverSocket.receive(ackPacket);
-            buffer = ByteBuffer.wrap(ackPacket.getData());
 
             // Confirm the Ack packet
-            if (buffer.get(3) == CMP && buffer.getInt(4) == objSize) ackFail = true;
+            buffer = ByteBuffer.wrap(ackPacket.getData());
+            if (buffer.get(3) == CMAP && buffer.getInt(4) == objSize) ackFail = true;
             else ackFail = false;
-        } while(ackFail);  // Reattempt to send the write request on the event of a failure
-        System.out.println("Ack received from the client");
+        } while(ackFail);  // Resend Write Request, in the event of a failure
 
-        // Send Combat Maps to Client
-        while(finalAckNotReceived) {
 
-            // Send the entire window to the client
+        // Send Combat Map to Client
+        while(true) {
+            // Send window to client
             block = windowHead;
             while (block < WINDOW_SIZE + windowHead && block <= finalBlockNo) {
                 // Create the Data packet:
@@ -218,61 +231,589 @@ class DMServer
                 // |0|#|0|#|Packet #|0|DATA|DATA|DATA|DATA|DATA|...|DATA|
                 //  ----------------------------------------------------
                 //
-                // 1) Create the data packet's header
+                // 1) Generate data packet heading
                 data = new byte[512];
                 data[1] = DATA;
-                data[3] = CMP;
+                data[3] = CMAP;
                 data[4] = (byte) (block >> 24);
                 data[5] = (byte) (block >> 16);
                 data[6] = (byte) (block >> 8);
                 data[7] = (byte) (block);
-                // 2) Create the data packet's payload
+                // 2) Generate data packet payload
                 index = 9;
                 for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
-                    data[index] = cMapBytes[i];
-                    System.out.print(cMapBytes[i]);
+                    data[index] = objBytes[i];
                     ++index;
                 }
 
-                // Send the block to the Client
+                // Send Data Packet
                 dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
-                System.out.print("SENDING: ");
-                printByteArray(dataPacket.getData());
                 serverSocket.send(dataPacket);
 
-                System.out.println("Combat Map Data Packet: " + block + " sent");
                 block++;  // Increment the block number
             }
 
-            // Receive the client's ack, and update the window head index appropriately
-            while (pendingMessage) {
+            // Receive client ack, and update window head
+            while (true) {
                 // Create the ackPacket
                 ackData = new byte[10];
                 ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
 
-                // Receive an Ack message from the client
-                try {
-                    serverSocket.receive(ackPacket);
-                } catch (SocketTimeoutException ex) {
-                    // Exit the "while(pendingMessage)" loop, when a socket timeout exception occurs
-                    pendingMessage = false;
-                    continue;
-                }
+                // Receive Ack
+                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
 
                 // Check the Ack packet number
                 buffer = ByteBuffer.wrap(ackPacket.getData());
                 ackPacketNo = buffer.getInt(5);
 
-                System.out.println("Ack Number: " + ackPacketNo);
-
-                // Increment the window head, after a successful Ack, stop sending packets after final ack
+                // Increment window head, after a successful Ack, end message after final ack is received
                 if (ackPacketNo == windowHead) windowHead++;
-                if(windowHead == finalBlockNo) finalAckNotReceived = false;
+                if(windowHead > finalBlockNo) return;
             }
-            pendingMessage = true;  // Reset the pending message flag
         }
+    }
 
-        System.out.println("End of object transfer");
+
+    /**
+     * Write an object to a playerClient Socket, This is done by sending a write request packet to the client, receiving
+     * an Ack packet and than sequentially sending the objects data in packets sized to 512 bytes with a 503 byte payload.
+     *
+     * @param userID UserID of the client
+     * @param weapon Weapon sent to the client
+     * @throws Exception
+     */
+    public static void writeObject(UserID userID, Weapon weapon) throws Exception{
+        byte [] data, wrqData = new byte[10], ackData = new byte[10];
+        int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
+        boolean ackFail;
+        DatagramPacket dataPacket, sendPacket, ackPacket;
+
+        // Convert the Weapon into a byte array
+        byte [] objBytes = Weapon.convertToBytes(weapon);
+        objSize = objBytes.length;
+
+        // Determine the number of blocks needed to be sent to the client
+        if(objBytes.length % 503 == 0) finalBlockNo = objSize / 503;
+        else finalBlockNo = (objSize / 503) + 1;
+
+        // Create write request packet:
+        // [byte][byte][byte][byte][byte]          [int]         [byte]
+        //  -----------------------------------------------------------
+        // |  0  | opc |  0  | type|  0  |      object size      |  0  |
+        //  -----------------------------------------------------------
+        wrqData[1] = WRQ;  // Set the opcode to write request
+        wrqData[3] = WPN;  // Set object type to Weapon
+
+        // Add the object's length to the write request packet
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(objBytes.length);
+        wrqData[5] = buffer.get(0);
+        wrqData[6] = buffer.get(1);
+        wrqData[7] = buffer.get(2);
+        wrqData[8] = buffer.get(3);
+
+        do {
+            // Send Write Request to client
+            sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
+            serverSocket.send(sendPacket);
+
+            // Receive Ack from client
+            ackPacket = new DatagramPacket(ackData, ackData.length);
+            serverSocket.receive(ackPacket);
+
+            // Confirm the Ack packet
+            buffer = ByteBuffer.wrap(ackPacket.getData());
+            if (buffer.get(3) == WPN && buffer.getInt(4) == objSize) ackFail = true;
+            else ackFail = false;
+        } while(ackFail);  // Resend Write Request, in the event of a failure
+
+
+        // Send Weapon to Client
+        while(true) {
+            // Send window to client
+            block = windowHead;
+            while (block < WINDOW_SIZE + windowHead && block <= finalBlockNo) {
+                // Create the Data packet:
+                //  0 1 2 3  4 5 6 7 8    9   10   11   12   13 ...  511
+                //  ----------------------------------------------------
+                // |0|#|0|#|Packet #|0|DATA|DATA|DATA|DATA|DATA|...|DATA|
+                //  ----------------------------------------------------
+                //
+                // 1) Generate data packet heading
+                data = new byte[512];
+                data[1] = DATA;
+                data[3] = WPN;
+                data[4] = (byte) (block >> 24);
+                data[5] = (byte) (block >> 16);
+                data[6] = (byte) (block >> 8);
+                data[7] = (byte) (block);
+                // 2) Generate data packet payload
+                index = 9;
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                    data[index] = objBytes[i];
+                    ++index;
+                }
+
+                // Send Data Packet
+                dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
+                serverSocket.send(dataPacket);
+
+                block++;  // Increment the block number
+            }
+
+            // Receive client ack, and update window head
+            while (true) {
+                // Create the ackPacket
+                ackData = new byte[10];
+                ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
+
+                // Receive Ack
+                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+
+                // Check the Ack packet number
+                buffer = ByteBuffer.wrap(ackPacket.getData());
+                ackPacketNo = buffer.getInt(5);
+
+                // Increment window head, after a successful Ack, end message after final ack is received
+                if (ackPacketNo == windowHead) windowHead++;
+                if(windowHead > finalBlockNo) return;
+            }
+        }
+    }
+
+
+    /**
+     * Write an object to a playerClient Socket, This is done by sending a write request packet to the client, receiving
+     * an Ack packet and than sequentially sending the objects data in packets sized to 512 bytes with a 503 byte payload.
+     *
+     * @param userID UserID of the client
+     * @param armor Armor sent to the client
+     * @throws Exception
+     */
+    public static void writeObject(UserID userID, Armor armor) throws Exception{
+        byte [] data, wrqData = new byte[10], ackData = new byte[10];
+        int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
+        boolean ackFail;
+        DatagramPacket dataPacket, sendPacket, ackPacket;
+
+        // Convert the Armor into a byte array
+        byte [] objBytes = Armor.convertToBytes(armor);
+        objSize = objBytes.length;
+
+        // Determine the number of blocks needed to be sent to the client
+        if(objBytes.length % 503 == 0) finalBlockNo = objSize / 503;
+        else finalBlockNo = (objSize / 503) + 1;
+
+        // Create write request packet:
+        // [byte][byte][byte][byte][byte]          [int]         [byte]
+        //  -----------------------------------------------------------
+        // |  0  | opc |  0  | type|  0  |      object size      |  0  |
+        //  -----------------------------------------------------------
+        wrqData[1] = WRQ;  // Set the opcode to write request
+        wrqData[3] = AMR;  // Set object type to Armor
+
+        // Add the object's length to the write request packet
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(objBytes.length);
+        wrqData[5] = buffer.get(0);
+        wrqData[6] = buffer.get(1);
+        wrqData[7] = buffer.get(2);
+        wrqData[8] = buffer.get(3);
+
+        do {
+            // Send Write Request to client
+            sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
+            serverSocket.send(sendPacket);
+
+            // Receive Ack from client
+            ackPacket = new DatagramPacket(ackData, ackData.length);
+            serverSocket.receive(ackPacket);
+
+            // Confirm the Ack packet
+            buffer = ByteBuffer.wrap(ackPacket.getData());
+            if (buffer.get(3) == AMR && buffer.getInt(4) == objSize) ackFail = true;
+            else ackFail = false;
+        } while(ackFail);  // Resend Write Request, in the event of a failure
+
+
+        // Send Armor to Client
+        while(true) {
+            // Send window to client
+            block = windowHead;
+            while (block < WINDOW_SIZE + windowHead && block <= finalBlockNo) {
+                // Create the Data packet:
+                //  0 1 2 3  4 5 6 7 8    9   10   11   12   13 ...  511
+                //  ----------------------------------------------------
+                // |0|#|0|#|Packet #|0|DATA|DATA|DATA|DATA|DATA|...|DATA|
+                //  ----------------------------------------------------
+                //
+                // 1) Generate data packet heading
+                data = new byte[512];
+                data[1] = DATA;
+                data[3] = AMR;
+                data[4] = (byte) (block >> 24);
+                data[5] = (byte) (block >> 16);
+                data[6] = (byte) (block >> 8);
+                data[7] = (byte) (block);
+                // 2) Generate data packet payload
+                index = 9;
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                    data[index] = objBytes[i];
+                    ++index;
+                }
+
+                // Send Data Packet
+                dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
+                serverSocket.send(dataPacket);
+
+                block++;  // Increment the block number
+            }
+
+            // Receive client ack, and update window head
+            while (true) {
+                // Create the ackPacket
+                ackData = new byte[10];
+                ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
+
+                // Receive Ack
+                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+
+                // Check the Ack packet number
+                buffer = ByteBuffer.wrap(ackPacket.getData());
+                ackPacketNo = buffer.getInt(5);
+
+                // Increment window head, after a successful Ack, end message after final ack is received
+                if (ackPacketNo == windowHead) windowHead++;
+                if(windowHead > finalBlockNo) return;
+            }
+        }
+    }
+
+
+    /**
+     * Write an object to a playerClient Socket, This is done by sending a write request packet to the client, receiving
+     * an Ack packet and than sequentially sending the objects data in packets sized to 512 bytes with a 503 byte payload.
+     *
+     * @param userID UserID of the client
+     * @param consumable Consumable sent to the client
+     * @throws Exception
+     */
+    public static void writeObject(UserID userID, Consumable consumable) throws Exception{
+        byte [] data, wrqData = new byte[10], ackData = new byte[10];
+        int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
+        boolean ackFail;
+        DatagramPacket dataPacket, sendPacket, ackPacket;
+
+        // Convert the Consumable into a byte array
+        byte [] objBytes = Consumable.convertToBytes(consumable);
+        objSize = objBytes.length;
+
+        // Determine the number of blocks needed to be sent to the client
+        if(objBytes.length % 503 == 0) finalBlockNo = objSize / 503;
+        else finalBlockNo = (objSize / 503) + 1;
+
+        // Create write request packet:
+        // [byte][byte][byte][byte][byte]          [int]         [byte]
+        //  -----------------------------------------------------------
+        // |  0  | opc |  0  | type|  0  |      object size      |  0  |
+        //  -----------------------------------------------------------
+        wrqData[1] = WRQ;  // Set the opcode to write request
+        wrqData[3] = CNSM;  // Set object type to Consumable
+
+        // Add the object's length to the write request packet
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(objBytes.length);
+        wrqData[5] = buffer.get(0);
+        wrqData[6] = buffer.get(1);
+        wrqData[7] = buffer.get(2);
+        wrqData[8] = buffer.get(3);
+
+        do {
+            // Send Write Request to client
+            sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
+            serverSocket.send(sendPacket);
+
+            // Receive Ack from client
+            ackPacket = new DatagramPacket(ackData, ackData.length);
+            serverSocket.receive(ackPacket);
+
+            // Confirm the Ack packet
+            buffer = ByteBuffer.wrap(ackPacket.getData());
+            if (buffer.get(3) == CNSM && buffer.getInt(4) == objSize) ackFail = true;
+            else ackFail = false;
+        } while(ackFail);  // Resend Write Request, in the event of a failure
+
+
+        // Send Consumable to Client
+        while(true) {
+            // Send window
+            block = windowHead;
+            while (block < WINDOW_SIZE + windowHead && block <= finalBlockNo) {
+                // Create the Data packet:
+                //  0 1 2 3  4 5 6 7 8    9   10   11   12   13 ...  511
+                //  ----------------------------------------------------
+                // |0|#|0|#|Packet #|0|DATA|DATA|DATA|DATA|DATA|...|DATA|
+                //  ----------------------------------------------------
+                //
+                // 1) Generate data packet heading
+                data = new byte[512];
+                data[1] = DATA;
+                data[3] = CNSM;
+                data[4] = (byte) (block >> 24);
+                data[5] = (byte) (block >> 16);
+                data[6] = (byte) (block >> 8);
+                data[7] = (byte) (block);
+                // 2) Generate data packet payload
+                index = 9;
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                    data[index] = objBytes[i];
+                    ++index;
+                }
+
+                // Send Data Packet
+                dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
+                serverSocket.send(dataPacket);
+
+                block++;  // Increment the block number
+            }
+
+            // Receive client ack, and update window head
+            while (true) {
+                // Create the ackPacket
+                ackData = new byte[10];
+                ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
+
+                // Receive Ack
+                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+
+                // Check the Ack packet number
+                buffer = ByteBuffer.wrap(ackPacket.getData());
+                ackPacketNo = buffer.getInt(5);
+
+                // Increment window head, after a successful Ack, end message after final ack is received
+                if (ackPacketNo == windowHead) windowHead++;
+                if(windowHead > finalBlockNo) return;
+            }
+        }
+    }
+
+
+    /**
+     * Write an object to a playerClient Socket, This is done by sending a write request packet to the client, receiving
+     * an Ack packet and than sequentially sending the objects data in packets sized to 512 bytes with a 503 byte payload.
+     *
+     * @param userID UserID of the client
+     * @param champion Champion sent to the client
+     * @throws Exception
+     */
+    public static void writeObject(UserID userID, Champion champion) throws Exception{
+        byte [] data, wrqData = new byte[10], ackData = new byte[10];
+        int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
+        boolean ackFail;
+        DatagramPacket dataPacket, sendPacket, ackPacket;
+
+        // Convert the Champion into a byte array
+        byte [] objBytes = Champion.convertToBytes(champion);
+        objSize = objBytes.length;
+
+        // Determine the number of blocks needed to be sent to the client
+        if(objBytes.length % 503 == 0) finalBlockNo = objSize / 503;
+        else finalBlockNo = (objSize / 503) + 1;
+
+        // Create write request packet:
+        // [byte][byte][byte][byte][byte]          [int]         [byte]
+        //  -----------------------------------------------------------
+        // |  0  | opc |  0  | type|  0  |      object size      |  0  |
+        //  -----------------------------------------------------------
+        wrqData[1] = WRQ;  // Set the opcode to write request
+        wrqData[3] = CHMP;  // Set object type to Champion
+
+        // Add the object's length to the write request packet
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(objBytes.length);
+        wrqData[5] = buffer.get(0);
+        wrqData[6] = buffer.get(1);
+        wrqData[7] = buffer.get(2);
+        wrqData[8] = buffer.get(3);
+
+        do {
+            // Send Write Request to client
+            sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
+            serverSocket.send(sendPacket);
+
+            // Receive Ack from client
+            ackPacket = new DatagramPacket(ackData, ackData.length);
+            serverSocket.receive(ackPacket);
+
+            // Confirm the Ack packet
+            buffer = ByteBuffer.wrap(ackPacket.getData());
+            if (buffer.get(3) == CHMP && buffer.getInt(4) == objSize) ackFail = true;
+            else ackFail = false;
+        } while(ackFail);  // Resend Write Request, in the event of a failure
+
+
+        // Send Champion to Client
+        while(true) {
+            // Send window to client
+            block = windowHead;
+            while (block < WINDOW_SIZE + windowHead && block <= finalBlockNo) {
+                // Create the Data packet:
+                //  0 1 2 3  4 5 6 7 8    9   10   11   12   13 ...  511
+                //  ----------------------------------------------------
+                // |0|#|0|#|Packet #|0|DATA|DATA|DATA|DATA|DATA|...|DATA|
+                //  ----------------------------------------------------
+                //
+                // 1) Generate data packet heading
+                data = new byte[512];
+                data[1] = DATA;
+                data[3] = CHMP;
+                data[4] = (byte) (block >> 24);
+                data[5] = (byte) (block >> 16);
+                data[6] = (byte) (block >> 8);
+                data[7] = (byte) (block);
+                // 2) Generate data packet payload
+                index = 9;
+                // THese are incorrect v
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                    data[index] = objBytes[i];
+                    ++index;
+                }
+
+                // Send Data Packet
+                dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
+                printByteArray(data);
+                serverSocket.send(dataPacket);
+                System.out.println("Block Sent: " + block);
+
+                block++;  // Increment the block number
+            }
+
+            // Receive client ack, and update window head
+            while (true) {
+                // Create the ackPacket
+                ackData = new byte[10];
+                ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
+
+                // Receive Ack
+                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+
+                // Check the Ack packet number
+                buffer = ByteBuffer.wrap(ackPacket.getData());
+                ackPacketNo = buffer.getInt(5);
+
+                // Increment window head, after a successful Ack, end message after final ack is received
+                if (ackPacketNo == windowHead) windowHead++;
+                if(windowHead > finalBlockNo) return;
+            }
+        }
+    }
+
+
+    /**
+     * Write an object to a playerClient Socket, This is done by sending a write request packet to the client, receiving
+     * an Ack packet and than sequentially sending the objects data in packets sized to 512 bytes with a 503 byte payload.
+     *
+     * @param userID UserID of the client
+     * @param creature Creature sent to the client
+     * @throws Exception
+     */
+    public static void writeObject(UserID userID, Creature creature) throws Exception{
+        byte [] data, wrqData = new byte[10], ackData = new byte[10];
+        int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
+        boolean ackFail;
+        DatagramPacket dataPacket, sendPacket, ackPacket;
+
+        // Convert the Creature into a byte array
+        byte [] objBytes = Creature.convertToBytes(creature);
+        objSize = objBytes.length;
+
+        // Determine the number of blocks needed to be sent to the client
+        if(objBytes.length % 503 == 0) finalBlockNo = objSize / 503;
+        else finalBlockNo = (objSize / 503) + 1;
+
+        // Create write request packet:
+        // [byte][byte][byte][byte][byte]          [int]         [byte]
+        //  -----------------------------------------------------------
+        // |  0  | opc |  0  | type|  0  |      object size      |  0  |
+        //  -----------------------------------------------------------
+        wrqData[1] = WRQ;  // Set the opcode to write request
+        wrqData[3] = CRTR;  // Set object type to Creature
+
+        // Add the object's length to the write request packet
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(objBytes.length);
+        wrqData[5] = buffer.get(0);
+        wrqData[6] = buffer.get(1);
+        wrqData[7] = buffer.get(2);
+        wrqData[8] = buffer.get(3);
+
+        do {
+            // Send Write Request to client
+            sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
+            serverSocket.send(sendPacket);
+
+            // Receive Ack from client
+            ackPacket = new DatagramPacket(ackData, ackData.length);
+            serverSocket.receive(ackPacket);
+
+            // Confirm the Ack packet
+            buffer = ByteBuffer.wrap(ackPacket.getData());
+            if (buffer.get(3) == CRTR && buffer.getInt(4) == objSize) ackFail = true;
+            else ackFail = false;
+        } while(ackFail);  // Resend Write Request, in the event of a failure
+
+
+        // Send Creature to Client
+        while(true) {
+            // Send window to client
+            block = windowHead;
+            while (block < WINDOW_SIZE + windowHead && block <= finalBlockNo) {
+                // Create the Data packet:
+                //  0 1 2 3  4 5 6 7 8    9   10   11   12   13 ...  511
+                //  ----------------------------------------------------
+                // |0|#|0|#|Packet #|0|DATA|DATA|DATA|DATA|DATA|...|DATA|
+                //  ----------------------------------------------------
+                //
+                // 1) Generate data packet heading
+                data = new byte[512];
+                data[1] = DATA;
+                data[3] = CRTR;
+                data[4] = (byte) (block >> 24);
+                data[5] = (byte) (block >> 16);
+                data[6] = (byte) (block >> 8);
+                data[7] = (byte) (block);
+                // 2) Generate data packet payload
+                index = 9;
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                    data[index] = objBytes[i];
+                    ++index;
+                }
+
+                // Send Data Packet
+                dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
+                serverSocket.send(dataPacket);
+
+                block++;  // Increment the block number
+            }
+
+            // Receive client ack, and update window head
+            while (true) {
+                // Create the ackPacket
+                ackData = new byte[10];
+                ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
+
+                // Receive Ack
+                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+
+                // Check the Ack packet number
+                buffer = ByteBuffer.wrap(ackPacket.getData());
+                ackPacketNo = buffer.getInt(5);
+
+                // Increment window head, after a successful Ack, end message after final ack is received
+                if (ackPacketNo == windowHead) windowHead++;
+                if(windowHead > finalBlockNo) return;
+            }
+        }
     }
 
 

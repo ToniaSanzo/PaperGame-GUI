@@ -4,6 +4,13 @@ package PaperGame;
 import java.io.*;
 
 public class Armor extends Equipment {
+    public static final String HEAD      = "Head";
+    public static final String TORSO     = "Torso";
+    public static final String PANTS     = "Pants";
+    public static final String BOOTS     = "Boots";
+    public static final String GLOVES    = "Gloves";
+    public static final String JEWELLERY = "Jewellery";
+
     // A String that represents the type of armor being used (e.g. boots | gloves | etc.)
     private String armorType;
 
