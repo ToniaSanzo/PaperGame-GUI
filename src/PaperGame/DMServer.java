@@ -1,6 +1,5 @@
 package PaperGame;
 
-import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -30,6 +29,9 @@ class DMServer
     public static void main(String args[]) throws Exception
     {
         ArrayList<String> ipAddresses = getIP();
+
+
+        // Objects created to send to the Client
         CombatMap cMap = new CombatMap(3,5,"TEST_1394$");
 
         Weapon wpn = new Weapon((short)3,(short)3,(short)3, (short) 3, 30,
@@ -41,29 +43,18 @@ class DMServer
         Creature crtr = new Creature();
 
 
-        printByteArray(Champion.convertToBytes(chmp));
-
-
         UserID userID;
 
         for(String tString: ipAddresses){ System.out.println("IP Address: " + tString); }
 
         openSocket(0);      // Open the server socket
         userID = clientJoin();      // Let the client join the server
-        cMap.printMap();            // Print the map
-        System.out.println("WRITING COMBAT MAP");
         writeObject(userID, cMap);  // Write Combat Map to client
-        System.out.println("WRITING WEAPON");
         writeObject(userID, wpn);   // Write Weapon to client
-        System.out.println("WRITING cnsm");
         writeObject(userID, cnsm);  // Write Consumable to client
-        System.out.println("WRITING ARMOR");
         writeObject(userID, armr);  // Write Armor to client
-        System.out.println("WRITING CHAMPION");
         writeObject(userID, chmp);  // Write Champion to client
-        System.out.println("WRITING CREATURE");
         writeObject(userID, crtr);  // Write Creature to client
-        System.out.println("DONE WRITING");
         closeSocket();              // Close the server socket
     }
 
@@ -241,7 +232,7 @@ class DMServer
                 data[7] = (byte) (block);
                 // 2) Generate data packet payload
                 index = 9;
-                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i < objSize; i++) {
                     data[index] = objBytes[i];
                     ++index;
                 }
@@ -349,7 +340,7 @@ class DMServer
                 data[7] = (byte) (block);
                 // 2) Generate data packet payload
                 index = 9;
-                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i < objSize; i++) {
                     data[index] = objBytes[i];
                     ++index;
                 }
@@ -457,7 +448,7 @@ class DMServer
                 data[7] = (byte) (block);
                 // 2) Generate data packet payload
                 index = 9;
-                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i  < objSize; i++) {
                     data[index] = objBytes[i];
                     ++index;
                 }
@@ -565,7 +556,7 @@ class DMServer
                 data[7] = (byte) (block);
                 // 2) Generate data packet payload
                 index = 9;
-                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i < objSize; i++) {
                     data[index] = objBytes[i];
                     ++index;
                 }
@@ -673,17 +664,14 @@ class DMServer
                 data[7] = (byte) (block);
                 // 2) Generate data packet payload
                 index = 9;
-                // THese are incorrect v
-                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i < objSize; i++) {
                     data[index] = objBytes[i];
                     ++index;
                 }
 
                 // Send Data Packet
                 dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
-                printByteArray(data);
                 serverSocket.send(dataPacket);
-                System.out.println("Block Sent: " + block);
 
                 block++;  // Increment the block number
             }
@@ -784,7 +772,7 @@ class DMServer
                 data[7] = (byte) (block);
                 // 2) Generate data packet payload
                 index = 9;
-                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i + ((block - 1) * PAYLOAD) < objSize; i++) {
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i < objSize; i++) {
                     data[index] = objBytes[i];
                     ++index;
                 }
