@@ -105,14 +105,14 @@ public class CombatMap implements Serializable{
 
 
     /**
-     * Add a TreasureChest to the grid, at the XY coordinate
+     * Add a Inventory to the grid, at the XY coordinate
      *
      * @param x X-Coordinate of the object
      * @param y Y-Coordinate of the object
-     * @param treasureChest TreasureChest object to be added to the CombatMap
+     * @param inventory Inventory object to be added to the CombatMap
      */
-    private void addChest(TreasureChest treasureChest, int x, int y){
-        int hashCode;             // HashCode generated from the TreasureChest object
+    private void addChest(Inventory inventory, int x, int y){
+        int hashCode;             // HashCode generated from the Inventory object
         Long coordinate;          // Long representation of the XY-Coordinate
         String uniqueIdentifier;  // String identifier
 
@@ -122,15 +122,15 @@ public class CombatMap implements Serializable{
             return;
         }
         coordinate = convertToCoordinate(x, y);  // Convert the XY coordinate to its long representation
-        hashCode   = treasureChest.hashCode();   // Generate a HashCode based on the treasure chest object
-        uniqueIdentifier = "TRE" + hashCode;     // Create the treasure chest's unique identifier
+        hashCode   = inventory.hashCode();       // Generate a HashCode based on the treasure chest object
+        uniqueIdentifier = "TRE" + hashCode;     // Create the inventory's unique identifier
 
         // Prevent duplicate keys being added to the HashMap's
         while(stringMap.containsKey(uniqueIdentifier)){ uniqueIdentifier = uniqueIdentifier.concat("0"); }
 
-        // Add the treasure chest to the CombatMap
+        // Add the inventory to the CombatMap
         coordinateMap.put(coordinate, uniqueIdentifier);
-        stringMap.put(uniqueIdentifier, treasureChest);
+        stringMap.put(uniqueIdentifier, inventory);
         grid[y][x] = true;
     }
 
