@@ -29,6 +29,7 @@ class PlayerClient
     private static final byte CNSM = 7;      // Consumable Object
     private static final byte CHMP = 8;      // Champion Object
     private static final byte CRTR = 9;      // Creature Object
+    private static final byte INV  = 10;     // Inventory Object
 
 
     private static final int PAYLOAD      = 503;  // Size of the Data payload per packet
@@ -46,11 +47,15 @@ class PlayerClient
         System.out.print("Enter IP address: ");
         String ipAddr = scanner.nextLine();
 
-        if(joinServer(ipAddr)){
-            System.out.println("Success");
-        }
+        joinServer(ipAddr);
 
-        for(int i = 0; i < 6; i++){ listen(); }
+        for(int i = 0; i < 7; i++){
+            Object temp = listen();
+            System.out.println(temp.toString().substring(0,15));
+            if(temp.toString().substring(0,15).equals("PaperGame.Armor")){
+                System.out.println("You Can Match <3");
+            }
+        }
 
         closeSocket();
     }
@@ -182,7 +187,6 @@ class PlayerClient
 
                     // Champion
                     case CHMP:
-                        DMServer.printByteArray(object);
                         rtnObj = Champion.convertToChampion(object);
                         Champion.convertToChampion(object).printChampion();
                         return rtnObj;
@@ -191,6 +195,12 @@ class PlayerClient
                     case CRTR:
                         rtnObj = Creature.convertToCreature(object);
                         Creature.convertToCreature(object).printCreature();
+                        return rtnObj;
+
+                    // Creature
+                    case INV:
+                        rtnObj = Inventory.convertToInventory(object);
+                        Inventory.convertToInventory(object).printInventory();
                         return rtnObj;
 
                     // Default
@@ -227,7 +237,6 @@ class PlayerClient
         int finalBlockNo, rcvdPacketNo, block = 1;
         DatagramPacket dataPacket;
 
-        System.out.println("Object Size: " + objSize);
         ByteBuffer buffer = ByteBuffer.allocate(objSize);
 
         // Determine the number of blocks being sent from the server
@@ -243,8 +252,6 @@ class PlayerClient
 
             // Convert the received packet into a byte array, determine packet no of the received packet
             data = dataPacket.getData();
-            DMServer.printByteArray(data);
-            System.out.println("Block Received: " + block);
             rcvdPacketNo = ((int)data[4] << 24) + ((int)data[5] << 16) + ((int)data[6] << 8) + (int)data[7];
 
             // Confirm that the received packet is next in the sequence
@@ -256,7 +263,6 @@ class PlayerClient
 
                 // Send the Ack back to the server, and increment the block number
                 sendAck(rcvdPacketNo, objType,ipAddr, port);
-                System.out.println("Ack sent: " + rcvdPacketNo);
                 block++;
             }
         }

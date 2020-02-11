@@ -17,13 +17,11 @@ public class Inventory implements Serializable {
 
 
     /**
-     * Add item to Inventory
+     * Add item/s to Inventory
      *
-     * @param item Item added
+     * @param item 0 or more item objects
      */
-    public void addItem(Item item){
-        itemList.add(item);
-    }
+    public void addItem(Item ... item){ for(Item i: item){ itemList.add(i); }}
 
 
     /**
@@ -40,6 +38,12 @@ public class Inventory implements Serializable {
      * @param itemList Updates Inventory's list to the parameter
      */
     public void setItemList(ArrayList<Item> itemList){ this.itemList = itemList; }
+
+
+    /**
+     * @return Object type (String Representation)
+     */
+    public String getType(){ return INVENTORY; }
 
     /**
      * Convert Inventory to a byte array
@@ -106,9 +110,7 @@ public class Inventory implements Serializable {
     public void printInventory(){
         // Print Inventory information
         System.out.print("Inventory contains: ");
-        for(int i = 0; i < itemList.size(); i++){
-            if(i +1 == itemList.size()) System.out.println(itemList.get(i).getName());
-            System.out.print(itemList.get(i).getName() + ", ");
-        }
+        for(int i = 0; i < itemList.size(); i++){ System.out.print(itemList.get(i).getName() + " "); }
+        System.out.println();
     }
 }
