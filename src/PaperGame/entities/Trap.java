@@ -1,4 +1,4 @@
-package PaperGame;
+package PaperGame.entities;
 
 public class Trap {
     private static final String TRAP = "Trap";  // String used to represent the type of object it is

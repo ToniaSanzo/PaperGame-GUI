@@ -1,9 +1,10 @@
-package PaperGame;
+package PaperGame.entities;
 
 import java.io.*;
 import java.util.HashMap;
 
-public class CombatMap implements Serializable{
+public class CombatMap implements Serializable, TransferredObject{
+    private static final String COMBAT_MAP = "Combat Map"; // Assists TypeCasting
 
     // Wrapper class for Creature-Champion's, keeps track of the dynamic locations of the Creature-Champion's,
     // the life status of the Creature-Champion's, the allies and enemies of the Creature-Champion's, and which user the
@@ -321,4 +322,10 @@ public class CombatMap implements Serializable{
         // Print CombatMap information
         System.out.println("Width: " + cols + " Height: " + rows + "\nName: " + name);
     }
+
+    /**
+     * @return String "Combat Map"
+     */
+    @Override
+    public String getType(){ return COMBAT_MAP; }
 }

@@ -1,7 +1,7 @@
-package PaperGame;
+package PaperGame.entities;
 
 
-public interface Item {
+public interface Item extends TransferredObject {
     // What subclass the item belongs too
     String CONSUMABLE = "Consumable", WEAPON = "Weapon", ARMOR ="Armor";
     // Different types of armor pieces
@@ -10,6 +10,5 @@ public interface Item {
     String KNIGHT = "Knight", ROGUE = "Rogue", WIZARD = "WIZARD";
 
     int getWeight();   // Returns the weight of the Item
-    String getType();  // Returns the subclass of the Item
     String getName();  // Returns Item's name
 }

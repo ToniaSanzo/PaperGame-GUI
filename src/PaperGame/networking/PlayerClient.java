@@ -1,4 +1,6 @@
-package PaperGame;
+package PaperGame.networking;
+
+import PaperGame.entities.*;
 
 import java.io.*;
 import java.net.*;
@@ -49,13 +51,7 @@ class PlayerClient
 
         joinServer(ipAddr);
 
-        for(int i = 0; i < 7; i++){
-            Object temp = listen();
-            System.out.println(temp.toString().substring(0,15));
-            if(temp.toString().substring(0,15).equals("PaperGame.Armor")){
-                System.out.println("You Can Match <3");
-            }
-        }
+        for(int i = 0; i < 7; i++){ TransferredObject temp = listen(); }
 
         closeSocket();
     }
@@ -124,7 +120,7 @@ class PlayerClient
      * Listens to a potential request, and continues with the appropriate sequence of operations based on the request
      * @exception Exception
      */
-    public static Object listen() throws Exception{
+    public static TransferredObject listen() throws Exception{
         byte [] ackData, requestData = new byte[10];
         byte opCode, objType;
         int objSize;
@@ -153,7 +149,7 @@ class PlayerClient
                 break;
             // Write Request
             case WRQ:  // WRQ: The server is attempting to write an object to
-                Object rtnObj;
+                TransferredObject rtnObj;
                 ackPacket = new DatagramPacket(ackData, ackData.length, rqPacket.getAddress(), rqPacket.getPort());
                 clientSocket.send(ackPacket);
                 byte [] object = writeRequest(objType, objSize, rqPacket.getAddress(), rqPacket.getPort());
@@ -170,7 +166,7 @@ class PlayerClient
                     // Weapon
                     case WPN:
                         rtnObj = Weapon.convertToWeapon(object);
-                        Weapon.convertToWeapon(object).printWeapon();  // PRINT STATEMENT
+                        Weapon.convertToWeapon(object).printWeapon();
                         return rtnObj;
 
                     // Armor
@@ -182,7 +178,7 @@ class PlayerClient
                     // Consumable
                     case CNSM:
                         rtnObj = Consumable.convertToConsumable(object);
-                        Consumable.convertToConsumable(object).printConsumable();  // PRINT STATEMENT
+                        Consumable.convertToConsumable(object).printConsumable();
                         return rtnObj;
 
                     // Champion

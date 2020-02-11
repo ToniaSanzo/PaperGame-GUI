@@ -1,4 +1,4 @@
-package PaperGame;
+package PaperGame.gui;
 import javafx.stage.*;
 import javafx.scene.*;
 import javafx.scene.layout.*;

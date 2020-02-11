@@ -1,4 +1,4 @@
-package PaperGame;
+package PaperGame.entities;
 
 import java.io.*;
 
@@ -148,6 +148,7 @@ public class Consumable implements Item, Serializable {
     /**
      * @return Returns "Consumable" in order to know which subclass this Item belongs too
      */
+    @Override
     public String getType(){
         return CONSUMABLE;
     }

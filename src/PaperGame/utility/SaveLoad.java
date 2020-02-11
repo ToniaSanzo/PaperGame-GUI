@@ -1,4 +1,6 @@
-package PaperGame;
+package PaperGame.utility;
+
+import PaperGame.entities.Champion;
 
 import java.io.*;
 

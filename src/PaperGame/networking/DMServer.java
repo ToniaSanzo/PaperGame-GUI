@@ -1,4 +1,6 @@
-package PaperGame;
+package PaperGame.networking;
+
+import PaperGame.entities.*;
 
 import java.net.*;
 import java.nio.ByteBuffer;

@@ -1,5 +1,7 @@
-package PaperGame;
+package PaperGame.gui;
 
+import PaperGame.utility.SaveLoad;
+import PaperGame.entities.Champion;
 import javafx.application.*;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;

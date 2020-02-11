@@ -1,4 +1,4 @@
-package PaperGame;
+package PaperGame.networking;
 
 import java.net.InetAddress;
 

@@ -1,9 +1,10 @@
-package PaperGame;
+package PaperGame.entities;
 
 
 import java.io.*;
 
 public class Armor extends Equipment {
+
     public static final String HEAD      = "Head";
     public static final String TORSO     = "Torso";
     public static final String PANTS     = "Pants";
@@ -45,6 +46,7 @@ public class Armor extends Equipment {
     /**
      * @return Returns the string "Armor" so other classes will know which class this item belongs to
      */
+    @Override
     public String getType() { return ARMOR; }
 
 

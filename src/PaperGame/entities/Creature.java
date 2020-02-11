@@ -1,4 +1,4 @@
-package PaperGame;
+package PaperGame.entities;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -7,8 +7,9 @@ import java.util.HashMap;
 /**
  * This Class is used as a super class for creatures that are going to be used in battle.
  */
-public class Creature implements Serializable {
+public class Creature implements Serializable, TransferredObject {
     private static HashMap<String, Creature> creatureCollection;  // Class HashMap containing every saved creature
+    protected static final String CREATURE = "Creature", CHAMPION = "Champion";
 
     // The stats of a creature used in combat encounters
     private String name;                // The creatures name
@@ -642,6 +643,13 @@ public class Creature implements Serializable {
      * @param item The item to be removed from the inventory
      */
     public void removeItem(Item item){ inventory.remove(item); }
+
+
+    /**
+     * @return String "Creature"
+     */
+    @Override
+    public String getType(){ return CREATURE; }
 
 
     /**

@@ -1,4 +1,4 @@
-package PaperGame;
+package PaperGame.entities;
 
 import java.io.*;
 import java.lang.Math;
@@ -599,4 +599,10 @@ public class Champion extends Creature {
                 " Current Energy: " + getCurrentEnergy() + "\nTotal Inventory Weight: " + getTotalInventoryWeight() +
                 " Current Inventory Weight: " + getCurrentInventoryWeight() + "\nName: " + getName());
     }
+
+    /**
+     * @return String "Champion"
+     */
+    @Override
+    public String getType(){ return CHAMPION; }
 }

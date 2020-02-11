@@ -1,4 +1,4 @@
-package PaperGame;
+package PaperGame.entities;
 
 import java.io.Serializable;
 
@@ -52,6 +52,7 @@ public class Equipment implements Item, Serializable {
     /**
      * @return Returns the empty string because the equipment class is a layer of abstraction
      */
+    @Override
     public String getType() { return ""; }
 
     /**

@@ -1,4 +1,4 @@
-package PaperGame;
+package PaperGame.entities;
 
 
 import java.io.*;
@@ -41,6 +41,7 @@ public class Weapon extends Equipment {
     /**
      * @return Returns that this item is a weapon
      */
+    @Override
     public String getType(){
         return WEAPON;
     }
