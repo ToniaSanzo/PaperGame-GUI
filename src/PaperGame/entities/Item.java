@@ -2,8 +2,6 @@ package PaperGame.entities;
 
 
 public interface Item extends TransferredObject {
-    // What subclass the item belongs too
-    String CONSUMABLE = "Consumable", WEAPON = "Weapon", ARMOR ="Armor";
     // Different types of armor pieces
     String HEAD = "Head", TORSO = "Torso", PANTS = "Pants", BOOTS= "Boots", GLOVES = "Gloves", JEWELRY = "Jewelry";
     // Different types of weapons that can be used

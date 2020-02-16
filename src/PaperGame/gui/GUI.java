@@ -14,7 +14,7 @@ import javafx.stage.*;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
-public class Main extends Application {
+public class GUI extends Application implements Runnable {
     //----------------- CONSTANTS --------------------------------------------------------------------------------------
     public static final String ORC = "Orc", ELF = "Elf", HUMAN = "Human", DWARF = "Dwarf";
     public static final String ARCHER = "Archer", WARRIOR = "Warrior", PALADIN = "Paladin", MAGE = "Mage";
@@ -51,15 +51,24 @@ public class Main extends Application {
     Label chmpNameLbl, chmpRaceLbl, chmpClassLbl, lvlLbl, goldLbl, invWeightLbl;
     Label strengthLbl, agilityLbl, intelligenceLbl, fortitudeLbl;
     Image chmpImg;
-    
+
 
     //----------------- METHODS ----------------------------------------------------------------------------------------
+    public GUI(){}
+
+
+    public void run(){
+        String [] args = null;
+        launch(args);
+    }
+
+
     /**
      * When the program runs the main method, the main method launches the GUI used in javaFX
      * @param args Command Line Arguments, command line arguments are not specified within this
      *             program
      */
-    public static void main(String[] args) { launch(args); }
+    //public static void main(String[] args) { launch(args); }
 
     /**
      * Launches the javaFX GUI, essentially the "main" method for the GUI

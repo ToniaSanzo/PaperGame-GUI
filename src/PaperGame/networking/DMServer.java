@@ -7,8 +7,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-class DMServer
-{
+public class DMServer {
     private static DatagramSocket serverSocket;
 
     // Opcode's, used in packet header's to distinguish the purpose of a packet

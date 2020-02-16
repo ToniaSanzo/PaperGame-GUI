@@ -9,7 +9,6 @@ import java.util.HashMap;
  */
 public class Creature implements Serializable, TransferredObject {
     private static HashMap<String, Creature> creatureCollection;  // Class HashMap containing every saved creature
-    protected static final String CREATURE = "Creature", CHAMPION = "Champion";
 
     // The stats of a creature used in combat encounters
     private String name;                // The creatures name

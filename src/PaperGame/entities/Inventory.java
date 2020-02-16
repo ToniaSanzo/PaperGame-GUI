@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class Inventory implements Serializable, TransferredObject {
-    private static final String INVENTORY = "Inventory";  // Object Type
     private ArrayList<Item> itemList;                     // Collection of items in the inventory
 
 
