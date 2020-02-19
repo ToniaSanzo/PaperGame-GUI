@@ -1,11 +1,30 @@
 package PaperGame.utility;
 
-import PaperGame.entities.Creature;
-import PaperGame.entities.TransferredObject;
 import PaperGame.gui.GUI;
+import PaperGame.networking.DMServer;
+import PaperGame.networking.PlayerClient;
+
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        //new Thread(new GUI()).start();
+        // Initial Threads
+        ThreadBridge tBridge = new ThreadBridge(
+                new Thread(new GUI()), new Thread(new DMServer()), new Thread(new PlayerClient())
+        );
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Server [Y/N]: ");
+        String ans = scanner.next();
+
+        if(ans.equals("Y") || ans.equals("y")){
+            tBridge.startGui();
+            tBridge.startServer();
+        } else {
+            tBridge.startGui();
+            tBridge.startClient();
+        }
+
+
     }
 }

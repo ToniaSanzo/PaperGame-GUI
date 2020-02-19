@@ -2,12 +2,13 @@ package PaperGame.networking;
 
 import PaperGame.entities.*;
 
+import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-public class DMServer {
+public class DMServer implements Runnable{
     private static DatagramSocket serverSocket;
 
     // Opcode's, used in packet header's to distinguish the purpose of a packet
@@ -28,8 +29,7 @@ public class DMServer {
     private static final int WINDOW_SIZE = 4;    // Window size for Sliding Window Protocol
     private static final int PAYLOAD     = 503;  // Size of the Data payload per packet
 
-    public static void main(String args[]) throws Exception
-    {
+    public void run(){
         ArrayList<String> ipAddresses = getIP();
 
 
@@ -68,7 +68,7 @@ public class DMServer {
     /**
      * @return Return's the Public IP address of the local machine in String format
      */
-    public static ArrayList<String> getIP() {
+    public ArrayList<String> getIP() {
         ArrayList<String> returnList = new ArrayList<String>();
         String ip;
         try {
@@ -95,39 +95,43 @@ public class DMServer {
      * Receive a player join packet and send an ack packet
      *
      * @return Return a User's ID
-     * @throws Exception
      */
-    public static UserID clientJoin() throws Exception{
+    public UserID clientJoin(){
 
         byte[] data = new byte[128];
         char tChar;
         String userName = "";
         int hashCode, index = 1;
 
-        // Receive a Datagram Packet from the client, transfer that data into a byte buffer
-        DatagramPacket receivePacket = new DatagramPacket(data, data.length);
-        serverSocket.receive(receivePacket);
-        ByteBuffer byteBuffer = ByteBuffer.wrap(receivePacket.getData());
+        try{
+            // Receive a Datagram Packet from the client, transfer that data into a byte buffer
+            DatagramPacket receivePacket = new DatagramPacket(data, data.length);
+            serverSocket.receive(receivePacket);
+            ByteBuffer byteBuffer = ByteBuffer.wrap(receivePacket.getData());
 
-        // Retrieve the player's user name and hash code
-        while(true) {
-            tChar = byteBuffer.getChar(index);
-            if(tChar == (char) 0) break;  // End the loop in the event of a delimiter being received
-            userName += tChar;
-            index += 2;
+            // Retrieve the player's user name and hash code
+            while (true) {
+                tChar = byteBuffer.getChar(index);
+                if (tChar == (char) 0) break;  // End the loop in the event of a delimiter being received
+                userName += tChar;
+                index += 2;
+            }
+            index += 3;
+            hashCode = byteBuffer.getInt(index);
+            byteBuffer.clear();
+
+            UserID userID = new UserID(userName, hashCode, receivePacket.getAddress(), receivePacket.getPort());
+
+            // Create and send Ack packet to client
+            data = clientJoinAckArray(hashCode);
+            DatagramPacket sendPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
+            serverSocket.send(sendPacket);
+
+            return userID;  // Return the client's UserID
+        } catch(IOException ex){
+            ex.printStackTrace();
+            return null;
         }
-        index += 3;
-        hashCode = byteBuffer.getInt(index);
-        byteBuffer.clear();
-
-        UserID userID = new UserID(userName, hashCode, receivePacket.getAddress(), receivePacket.getPort());
-
-        // Create and send Ack packet to client
-        data = clientJoinAckArray(hashCode);
-        DatagramPacket sendPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
-        serverSocket.send(sendPacket);
-
-        return userID;  // Return the client's UserID
     }
 
 
@@ -136,7 +140,7 @@ public class DMServer {
      *
      * @param timeout Integer value specifying the socket timeout
      */
-    public static void openSocket(int timeout){
+    public void openSocket(int timeout){
         try {
             serverSocket = new DatagramSocket(9876);  // open server socket
             serverSocket.setSoTimeout(timeout);            // set timeout to 300 milliseconds
@@ -147,7 +151,7 @@ public class DMServer {
     /**
      * Close the server socket
      */
-    public static void closeSocket(){ serverSocket.close(); }
+    public void closeSocket(){ serverSocket.close(); }
 
 
     /**
@@ -156,7 +160,7 @@ public class DMServer {
      * @param hashCode The new player's hash code
      * @return A byte array containing the new player's hash code within a 4 byte-array
      */
-    public static byte[] clientJoinAckArray(int hashCode){
+    public byte[] clientJoinAckArray(int hashCode){
         ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         byteBuffer.putInt(hashCode);
         return byteBuffer.array();
@@ -169,9 +173,8 @@ public class DMServer {
      *
      * @param userID UserID of the client
      * @param combatMap Combat Map sent to the client
-     * @throws Exception
      */
-    public static void writeObject(UserID userID, CombatMap combatMap) throws Exception{
+    public void writeObject(UserID userID, CombatMap combatMap){
         byte [] data, wrqData = new byte[10], ackData = new byte[10];
         int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
         boolean ackFail;
@@ -204,11 +207,13 @@ public class DMServer {
         do {
             // Send Write Request to client
             sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
-            serverSocket.send(sendPacket);
+            try{ serverSocket.send(sendPacket); }
+            catch(IOException ex) { ex.printStackTrace(); }
 
             // Receive Ack from client
             ackPacket = new DatagramPacket(ackData, ackData.length);
-            serverSocket.receive(ackPacket);
+            try{ serverSocket.receive(ackPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
 
             // Confirm the Ack packet
             buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -245,7 +250,8 @@ public class DMServer {
 
                 // Send Data Packet
                 dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
-                serverSocket.send(dataPacket);
+                try{ serverSocket.send(dataPacket); }
+                catch(IOException ex){ ex.printStackTrace(); }
 
                 block++;  // Increment the block number
             }
@@ -257,7 +263,9 @@ public class DMServer {
                 ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
 
                 // Receive Ack
-                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+                try{ serverSocket.receive(ackPacket); }
+                catch(SocketTimeoutException ex){ break; }
+                catch(IOException ex){ ex.printStackTrace(); }
 
                 // Check the Ack packet number
                 buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -279,7 +287,7 @@ public class DMServer {
      * @param weapon Weapon sent to the client
      * @throws Exception
      */
-    public static void writeObject(UserID userID, Weapon weapon) throws Exception{
+    public void writeObject(UserID userID, Weapon weapon){
         byte [] data, wrqData = new byte[10], ackData = new byte[10];
         int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
         boolean ackFail;
@@ -312,11 +320,14 @@ public class DMServer {
         do {
             // Send Write Request to client
             sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
-            serverSocket.send(sendPacket);
+            try{ serverSocket.send(sendPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
 
             // Receive Ack from client
             ackPacket = new DatagramPacket(ackData, ackData.length);
-            serverSocket.receive(ackPacket);
+            try{ serverSocket.receive(ackPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Confirm the Ack packet
             buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -353,7 +364,8 @@ public class DMServer {
 
                 // Send Data Packet
                 dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
-                serverSocket.send(dataPacket);
+                try{ serverSocket.send(dataPacket); }
+                catch(IOException ex){ ex.printStackTrace(); }
 
                 block++;  // Increment the block number
             }
@@ -365,7 +377,10 @@ public class DMServer {
                 ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
 
                 // Receive Ack
-                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+                try{ serverSocket.receive(ackPacket); }
+                catch(SocketTimeoutException ex){ break; }
+                catch(IOException ex){ ex.printStackTrace(); }
+
 
                 // Check the Ack packet number
                 buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -387,7 +402,7 @@ public class DMServer {
      * @param armor Armor sent to the client
      * @throws Exception
      */
-    public static void writeObject(UserID userID, Armor armor) throws Exception{
+    public void writeObject(UserID userID, Armor armor){
         byte [] data, wrqData = new byte[10], ackData = new byte[10];
         int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
         boolean ackFail;
@@ -420,11 +435,15 @@ public class DMServer {
         do {
             // Send Write Request to client
             sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
-            serverSocket.send(sendPacket);
+            try{ serverSocket.send(sendPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Receive Ack from client
             ackPacket = new DatagramPacket(ackData, ackData.length);
-            serverSocket.receive(ackPacket);
+            try{ serverSocket.receive(ackPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Confirm the Ack packet
             buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -461,7 +480,9 @@ public class DMServer {
 
                 // Send Data Packet
                 dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
-                serverSocket.send(dataPacket);
+                try{ serverSocket.send(dataPacket); }
+                catch(IOException ex){ ex.printStackTrace(); }
+
 
                 block++;  // Increment the block number
             }
@@ -473,7 +494,10 @@ public class DMServer {
                 ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
 
                 // Receive Ack
-                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+                try { serverSocket.receive(ackPacket); }
+                catch(SocketTimeoutException ex){ break; }
+                catch(IOException ex){ ex.printStackTrace(); }
+
 
                 // Check the Ack packet number
                 buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -493,9 +517,8 @@ public class DMServer {
      *
      * @param userID UserID of the client
      * @param consumable Consumable sent to the client
-     * @throws Exception
      */
-    public static void writeObject(UserID userID, Consumable consumable) throws Exception{
+    public void writeObject(UserID userID, Consumable consumable){
         byte [] data, wrqData = new byte[10], ackData = new byte[10];
         int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
         boolean ackFail;
@@ -528,11 +551,15 @@ public class DMServer {
         do {
             // Send Write Request to client
             sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
-            serverSocket.send(sendPacket);
+            try{ serverSocket.send(sendPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Receive Ack from client
             ackPacket = new DatagramPacket(ackData, ackData.length);
-            serverSocket.receive(ackPacket);
+            try{ serverSocket.receive(ackPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Confirm the Ack packet
             buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -569,7 +596,8 @@ public class DMServer {
 
                 // Send Data Packet
                 dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
-                serverSocket.send(dataPacket);
+                try{ serverSocket.send(dataPacket); }
+                catch(IOException ex){ ex.printStackTrace(); }
 
                 block++;  // Increment the block number
             }
@@ -581,7 +609,10 @@ public class DMServer {
                 ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
 
                 // Receive Ack
-                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+                try{ serverSocket.receive(ackPacket); }
+                catch(SocketTimeoutException ex){ break; }
+                catch(IOException ex){ ex.printStackTrace(); }
+
 
                 // Check the Ack packet number
                 buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -601,9 +632,8 @@ public class DMServer {
      *
      * @param userID UserID of the client
      * @param champion Champion sent to the client
-     * @throws Exception
      */
-    public static void writeObject(UserID userID, Champion champion) throws Exception{
+    public void writeObject(UserID userID, Champion champion){
         byte [] data, wrqData = new byte[10], ackData = new byte[10];
         int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
         boolean ackFail;
@@ -636,11 +666,15 @@ public class DMServer {
         do {
             // Send Write Request to client
             sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
-            serverSocket.send(sendPacket);
+            try{ serverSocket.send(sendPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Receive Ack from client
             ackPacket = new DatagramPacket(ackData, ackData.length);
-            serverSocket.receive(ackPacket);
+            try{ serverSocket.receive(ackPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Confirm the Ack packet
             buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -677,7 +711,9 @@ public class DMServer {
 
                 // Send Data Packet
                 dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
-                serverSocket.send(dataPacket);
+                try{ serverSocket.send(dataPacket); }
+                catch(IOException ex){ ex.printStackTrace(); }
+
 
                 block++;  // Increment the block number
             }
@@ -689,7 +725,10 @@ public class DMServer {
                 ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
 
                 // Receive Ack
-                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+                try{ serverSocket.receive(ackPacket); }
+                catch(SocketTimeoutException ex){ break; }
+                catch(IOException ex){ ex.printStackTrace(); }
+
 
                 // Check the Ack packet number
                 buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -709,9 +748,8 @@ public class DMServer {
      *
      * @param userID UserID of the client
      * @param creature Creature sent to the client
-     * @throws Exception
      */
-    public static void writeObject(UserID userID, Creature creature) throws Exception{
+    public void writeObject(UserID userID, Creature creature){
         byte [] data, wrqData = new byte[10], ackData = new byte[10];
         int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
         boolean ackFail;
@@ -744,11 +782,15 @@ public class DMServer {
         do {
             // Send Write Request to client
             sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
-            serverSocket.send(sendPacket);
+            try{ serverSocket.send(sendPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Receive Ack from client
             ackPacket = new DatagramPacket(ackData, ackData.length);
-            serverSocket.receive(ackPacket);
+            try{ serverSocket.receive(ackPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Confirm the Ack packet
             buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -785,7 +827,9 @@ public class DMServer {
 
                 // Send Data Packet
                 dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
-                serverSocket.send(dataPacket);
+                try{ serverSocket.send(dataPacket); }
+                catch(IOException ex){ ex.printStackTrace(); }
+
 
                 block++;  // Increment the block number
             }
@@ -797,7 +841,10 @@ public class DMServer {
                 ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
 
                 // Receive Ack
-                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+                try { serverSocket.receive(ackPacket); }
+                catch(SocketTimeoutException ex){ break; }
+                catch(IOException ex){ ex.printStackTrace(); }
+
 
                 // Check the Ack packet number
                 buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -817,9 +864,8 @@ public class DMServer {
      *
      * @param userID UserID of the client
      * @param inventory Inventory sent to the client
-     * @throws Exception
      */
-    public static void writeObject(UserID userID, Inventory inventory) throws Exception{
+    public void writeObject(UserID userID, Inventory inventory){
         byte [] data, wrqData = new byte[10], ackData = new byte[10];
         int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
         boolean ackFail;
@@ -852,11 +898,15 @@ public class DMServer {
         do {
             // Send Write Request to client
             sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
-            serverSocket.send(sendPacket);
+            try{ serverSocket.send(sendPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Receive Ack from client
             ackPacket = new DatagramPacket(ackData, ackData.length);
-            serverSocket.receive(ackPacket);
+            try{ serverSocket.receive(ackPacket); }
+            catch(IOException ex){ ex.printStackTrace(); }
+
 
             // Confirm the Ack packet
             buffer = ByteBuffer.wrap(ackPacket.getData());
@@ -893,7 +943,9 @@ public class DMServer {
 
                 // Send Data Packet
                 dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
-                serverSocket.send(dataPacket);
+                try{ serverSocket.send(dataPacket); }
+                catch(IOException ex){ ex.printStackTrace(); }
+
 
                 block++;  // Increment the block number
             }
@@ -905,7 +957,10 @@ public class DMServer {
                 ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
 
                 // Receive Ack
-                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+                try{ serverSocket.receive(ackPacket); }
+                catch(SocketTimeoutException ex){ break; }
+                catch(IOException ex){ ex.printStackTrace(); }
+
 
                 // Check the Ack packet number
                 buffer = ByteBuffer.wrap(ackPacket.getData());

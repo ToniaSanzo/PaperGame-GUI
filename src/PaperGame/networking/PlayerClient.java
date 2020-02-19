@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Scanner;
 
-class PlayerClient
+public class PlayerClient implements Runnable
 {
     //- CLEAN UP -------------------------------------------------------------------------------------------------------
     private static String userName;
@@ -39,7 +39,7 @@ class PlayerClient
 
 
     //- CLEAN UP -------------------------------------------------------------------------------------------------------
-    public static void main(String args[]) throws Exception {
+    public void run(){
         // Create the clients user id
         scanner = new Scanner(System.in);
         System.out.print("Enter user name: ");
@@ -120,7 +120,7 @@ class PlayerClient
      * Listens to a potential request, and continues with the appropriate sequence of operations based on the request
      * @exception Exception
      */
-    public static TransferredObject listen() throws Exception{
+    public static TransferredObject listen(){
         byte [] ackData, requestData = new byte[10];
         byte opCode, objType;
         int objSize;
@@ -128,10 +128,17 @@ class PlayerClient
 
 
         // Receive request from server (e.g. Write Request, Read Request, etc.)
-        clientSocket.setSoTimeout(0);
+        try{ clientSocket.setSoTimeout(0); }
+        catch(SocketException ex){ ex.printStackTrace(); }
+
         rqPacket = new DatagramPacket(requestData, requestData.length);
-        clientSocket.receive(rqPacket);
-        clientSocket.setSoTimeout(300);
+
+        try{ clientSocket.receive(rqPacket); }
+        catch(IOException ex){ ex.printStackTrace(); }
+
+        try{ clientSocket.setSoTimeout(300); }
+        catch(SocketException ex){ ex.printStackTrace(); }
+
 
         // Ack message is a copy of the request from server
         ackData = rqPacket.getData();
@@ -151,7 +158,10 @@ class PlayerClient
             case WRQ:  // WRQ: The server is attempting to write an object to
                 TransferredObject rtnObj;
                 ackPacket = new DatagramPacket(ackData, ackData.length, rqPacket.getAddress(), rqPacket.getPort());
-                clientSocket.send(ackPacket);
+
+                try{ clientSocket.send(ackPacket); }
+                catch(IOException ex){ ex.printStackTrace(); }
+
                 byte [] object = writeRequest(objType, objSize, rqPacket.getAddress(), rqPacket.getPort());
 
                 // Convert received byte array's into Objects
