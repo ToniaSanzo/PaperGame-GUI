@@ -2,6 +2,7 @@ package PaperGame.gui;
 
 import PaperGame.utility.SaveLoad;
 import PaperGame.entities.Champion;
+import PaperGame.utility.ThreadBridge;
 import javafx.application.*;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
@@ -219,8 +220,10 @@ public class GUI extends Application implements Runnable {
      */
     private void closeOnYes() {
         boolean close = ConfirmationBox.show("Close the Program?","Exit","Yes","No");
-        if(close)
+        if(close) {
             stage.close();
+            ThreadBridge.guiOff();
+        }
     }
 
     /**

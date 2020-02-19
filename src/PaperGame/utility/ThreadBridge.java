@@ -11,19 +11,35 @@ public class ThreadBridge {
     private final String CONSUMABLE = "Consumable", WEAPON = "Weapon", ARMOR ="Armor", COMBAT_MAP = "Combat Map",
             CREATURE = "Creature", CHAMPION = "Champion", INVENTORY = "Inventory";
 
-    private final Lock lock = new ReentrantLock();
     private Thread gui;
     private Thread server;
     private Thread client;
-    private boolean incomingMessage = false;
-    private boolean outgoingMessage = false;
+    private static boolean serverFlag = false;
+    private static boolean clientFlag = false;
+    private static boolean guiOn      = true;
 
 
 
-    public ThreadBridge(Thread gui, Thread server, Thread Client){
+    public ThreadBridge(Thread gui, Thread server, Thread client){
         this.gui = gui;
         this.server = server;
         this.client = client;
+    }
+
+
+    public void init(){
+
+        while(guiOn) {
+            if (serverFlag) {
+                server.start();
+                //clientRole()
+            }
+
+            if (clientFlag) {
+                client.start();
+                //serverRole();
+            }
+        }
     }
 
     /**
@@ -43,4 +59,21 @@ public class ThreadBridge {
      */
     public void startClient(){ client.start(); }
 
+
+    /**
+     * Lets ThreadBridge know the GUI was closed
+     */
+    public static void guiOff(){ guiOn = false;}
+
+
+    /**
+     * Called when user chooses DM role
+     */
+    public static void serverOn(){ serverFlag = true; }
+
+
+    /**
+     * Called when user chooses Player role
+     */
+    public static void clientOn(){ clientFlag = true; }
 }
