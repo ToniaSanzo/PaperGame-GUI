@@ -17,6 +17,7 @@ public class Main {
         System.out.print("Server [Y/N]: ");
         String ans = scanner.next();
 
+        //
         if(ans.equals("Y") || ans.equals("y")){
             tBridge.startGui();
             tBridge.startServer();
