@@ -28,16 +28,19 @@ public class ThreadBridge {
 
 
     public void init(){
+        boolean networkOn = false;
 
-        while(guiOn) {
+        gui.start();
+
+        while(guiOn && !networkOn) {
             if (serverFlag) {
                 server.start();
-                //clientRole()
+                networkOn = true;
             }
 
             if (clientFlag) {
                 client.start();
-                //serverRole();
+                networkOn = true;
             }
         }
     }

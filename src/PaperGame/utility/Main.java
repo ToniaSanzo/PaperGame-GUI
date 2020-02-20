@@ -17,6 +17,12 @@ public class Main {
         System.out.print("Server [Y/N]: ");
         String ans = scanner.next();
 
+        if(ans.equals("Y"))
+            ThreadBridge.serverOn();
+        else
+            ThreadBridge.clientOn();
+
+
         tBridge.init();
     }
 }
