@@ -70,8 +70,7 @@ public class GUI extends Application implements Runnable {
      * When the program runs the main method, the main method launches the GUI used in javaFX
      */
     public void run(){
-        String [] args = null;
-        launch(args);
+        launch();
     }
 
 
@@ -82,7 +81,6 @@ public class GUI extends Application implements Runnable {
      */
     @Override
     public void start(Stage primaryStage) throws Exception{
-
         stage = primaryStage;
 
         // Creates the Dungeon Master or Player Scene
@@ -200,10 +198,11 @@ public class GUI extends Application implements Runnable {
     private void dmOption() {
         ThreadBridge.serverOn();
         String lblStr = "IP Address\n";
-        for(String str: ThreadBridge.getIP()){ lblStr.concat(str + "\n"); }
+        for(String str: ThreadBridge.getIP()){ lblStr = lblStr.concat(str + "\n"); }
         dmRoomJoinIPAddr = new Label(lblStr);
         dmRoomJoinStartUID = new ListView<String>();
         dmRoomJoinStart  = new Button("Start");
+        dmRoomJoinStart.setOnAction(e -> { System.out.println("start button pressed"); });
         HBox dmRoomJoinPanel = new HBox(50, dmRoomJoinIPAddr, dmRoomJoinStartUID, dmRoomJoinStart);
         dmRoomJoinScene = new Scene(dmRoomJoinPanel, 730, 430);
         stage.setScene(dmRoomJoinScene);

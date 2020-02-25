@@ -1,9 +1,10 @@
 package PaperGame.utility;
 
 import PaperGame.entities.*;
-import PaperGame.networking.DMServer;
+//import PaperGame.networking.DMServer;
 import PaperGame.networking.UserID;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -35,11 +36,12 @@ public class ThreadBridge {
     public void init(){
         boolean networkOn = false;
 
-        gui.start();
+        startGui();
 
-        while(guiOn && !networkOn) {
-
+        while(!networkOn) {
+            try { Thread.sleep(300); } catch (InterruptedException ex){ ex.printStackTrace(); }
             if (serverFlag) {
+                System.out.println("Server Started!");
                 server.start();
                 networkOn = true;
             }
@@ -49,12 +51,17 @@ public class ThreadBridge {
                 networkOn = true;
             }
         }
+        System.out.println("init exited");
     }
+
 
     /**
      * Start GUI thread
      */
-    public void startGui(){ gui.start(); }
+    public void startGui(){
+        guiOn = true;
+        gui.start();
+    }
 
 
     /**
@@ -90,7 +97,7 @@ public class ThreadBridge {
     /**
      * @return Return's the Public IP address of the local machine in String format
      */
-    public static synchronized ArrayList<String> getIP() {
+    public static ArrayList<String> getIP() {
         ArrayList<String> returnList = new ArrayList<String>();
         String ip;
         try {
@@ -98,6 +105,7 @@ public class ThreadBridge {
             while (interfaces.hasMoreElements()) {
                 NetworkInterface iface = interfaces.nextElement();
                 // filters out 127.0.0.1 and inactive interfaces
+
                 if (iface.isLoopback() || !iface.isUp()) continue;
 
                 Enumeration<InetAddress> addresses = iface.getInetAddresses();
