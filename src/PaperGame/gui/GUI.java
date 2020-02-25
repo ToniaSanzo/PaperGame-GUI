@@ -203,8 +203,8 @@ public class GUI extends Application implements Runnable {
         dmRoomJoinStartUID = new ListView<String>();
         dmRoomJoinStart  = new Button("Start");
         dmRoomJoinStart.setOnAction(e -> { System.out.println("start button pressed"); });
-        HBox dmRoomJoinPanel = new HBox(50, dmRoomJoinIPAddr, dmRoomJoinStartUID, dmRoomJoinStart);
-        dmRoomJoinScene = new Scene(dmRoomJoinPanel, 730, 430);
+        VBox dmRoomJoinPanel = new VBox(50, dmRoomJoinIPAddr, dmRoomJoinStartUID, dmRoomJoinStart);
+        dmRoomJoinScene = new Scene(dmRoomJoinPanel, 1200, 900);
         stage.setScene(dmRoomJoinScene);
         stage.setTitle("Join Room");
         stage.show();
@@ -221,7 +221,7 @@ public class GUI extends Application implements Runnable {
     }
 
     /**
-     * Method called when theuser chooses the Create a Character button, in the Load Character scene
+     * Method called when the user chooses the Create a Character button, in the Load Character scene
      */
     private void crtChmpOption() {
         stage.setScene(crtChmpScene);
