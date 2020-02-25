@@ -14,6 +14,7 @@ import javafx.stage.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 public class GUI extends Application implements Runnable {
     //----------------- CONSTANTS --------------------------------------------------------------------------------------
@@ -27,6 +28,13 @@ public class GUI extends Application implements Runnable {
     Button dmBtn;
     Button plyrBtn;
     Label dmOrPlyrLbl;
+
+    // DM-Room-Join_Screen objects
+    Scene dmRoomJoinScene;
+    Button dmRoomJoinStart;
+    Label dmRoomJoinIPAddr;
+    ListView<String> dmRoomJoinStartUID;
+
 
     // Objects used in the Load Character Scene
     Scene loadCharacterScene;
@@ -58,18 +66,14 @@ public class GUI extends Application implements Runnable {
     public GUI(){}
 
 
+    /**
+     * When the program runs the main method, the main method launches the GUI used in javaFX
+     */
     public void run(){
         String [] args = null;
         launch(args);
     }
 
-
-    /**
-     * When the program runs the main method, the main method launches the GUI used in javaFX
-     * @param args Command Line Arguments, command line arguments are not specified within this
-     *             program
-     */
-    //public static void main(String[] args) { launch(args); }
 
     /**
      * Launches the javaFX GUI, essentially the "main" method for the GUI
@@ -194,7 +198,17 @@ public class GUI extends Application implements Runnable {
      * Method called when the user chooses the Dungeon Master button, in the Dungeon Master or Player scene
      */
     private void dmOption() {
-        MessageBox.show("DUNGEON MASTER UI UNDER CONSTRUCTION", "UNDER CONSTRUCTION");
+        ThreadBridge.serverOn();
+        String lblStr = "IP Address\n";
+        for(String str: ThreadBridge.getIP()){ lblStr.concat(str + "\n"); }
+        dmRoomJoinIPAddr = new Label(lblStr);
+        dmRoomJoinStartUID = new ListView<String>();
+        dmRoomJoinStart  = new Button("Start");
+        HBox dmRoomJoinPanel = new HBox(50, dmRoomJoinIPAddr, dmRoomJoinStartUID, dmRoomJoinStart);
+        dmRoomJoinScene = new Scene(dmRoomJoinPanel, 730, 430);
+        stage.setScene(dmRoomJoinScene);
+        stage.setTitle("Join Room");
+        stage.show();
     }
 
     /**

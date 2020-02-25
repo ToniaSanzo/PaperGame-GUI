@@ -4,8 +4,6 @@ import PaperGame.gui.GUI;
 import PaperGame.networking.DMServer;
 import PaperGame.networking.PlayerClient;
 
-import java.util.Scanner;
-
 public class Main {
     public static void main(String[] args) {
         // Initial Threads
@@ -13,6 +11,7 @@ public class Main {
                 new Thread(new GUI()), new Thread(new DMServer()), new Thread(new PlayerClient())
         );
 
+        /*
         Scanner scanner = new Scanner(System.in);
         System.out.print("Server [Y/N]: ");
         String ans = scanner.next();
@@ -21,7 +20,7 @@ public class Main {
             ThreadBridge.serverOn();
         else
             ThreadBridge.clientOn();
-
+        */
 
         tBridge.init();
     }
