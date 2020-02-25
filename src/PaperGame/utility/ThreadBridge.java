@@ -47,6 +47,7 @@ public class ThreadBridge {
             }
 
             if (clientFlag) {
+                System.out.println("Client Started!");
                 client.start();
                 networkOn = true;
             }

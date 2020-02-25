@@ -6,7 +6,7 @@ import PaperGame.networking.PlayerClient;
 
 public class Main {
     public static void main(String[] args) {
-        // Contruct Threads wrapper class
+        // Construct Threads wrapper class
         ThreadBridge tBridge = new ThreadBridge(
                 new Thread(new GUI()), new Thread(new DMServer()), new Thread(new PlayerClient())
         );

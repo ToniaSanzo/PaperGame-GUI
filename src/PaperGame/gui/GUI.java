@@ -214,6 +214,7 @@ public class GUI extends Application implements Runnable {
      * Method called when the user chooses the Player button, in the Dungeon Master or Player scene
      */
     private void plyrOption() {
+        ThreadBridge.clientOn();
         stage.setScene(loadCharacterScene);
         stage.setTitle("Load/Create Character");
         stage.show();

@@ -39,7 +39,7 @@ public class PlayerClient implements Runnable
 
 
     //- CLEAN UP -------------------------------------------------------------------------------------------------------
-    public void run(){
+    public void run() {
         // Create the clients user id
         scanner = new Scanner(System.in);
         System.out.print("Enter user name: ");
@@ -49,7 +49,11 @@ public class PlayerClient implements Runnable
         System.out.print("Enter IP address: ");
         String ipAddr = scanner.nextLine();
 
-        joinServer(ipAddr);
+        try{
+            joinServer(ipAddr);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
 
         for(int i = 0; i < 7; i++){
             try {
@@ -77,8 +81,8 @@ public class PlayerClient implements Runnable
      * @param ipAddr The Server's IP address
      * @return True after successful communication with server, otherwise false
      */
-    public static boolean joinServer(String ipAddr){
-        try {
+    public static boolean joinServer(String ipAddr) throws Exception{
+
             int hashCode;
             byte[] receiveData = new byte[4];
 
@@ -112,13 +116,7 @@ public class PlayerClient implements Runnable
             if(hashCode == hashCode2){
                 serverID = new UserID("Server ID", "Server ID".hashCode(), IPAddress, 9876);
                 return true;
-            }
-            else return false;
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return false;
-        }
+            } else return false;
     }
 
 
