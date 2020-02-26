@@ -1,6 +1,7 @@
 package PaperGame.networking;
 
 import PaperGame.entities.*;
+import PaperGame.utility.ThreadBridge;
 
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -32,7 +33,8 @@ public class DMServer implements Runnable
     public void run()
     {
         try {
-            ArrayList<String> ipAddresses = getIP();
+            ArrayList<UserID> userIDs = new ArrayList<UserID>();
+            UserID uID;
 
 
             // Objects created to send to the Client
@@ -48,54 +50,31 @@ public class DMServer implements Runnable
             Inventory inv = new Inventory();
             inv.addItem(cnsm, armr, wpn);
 
+            openSocket(300);      // Open the server socket
 
-            UserID userID;
-
-            for (String tString : ipAddresses) {
-                System.out.println("IP Address: " + tString);
+            // While User's are joining the DM's game
+            while(!ThreadBridge.gameStarted()){
+                try { uID = clientJoin(); } catch (SocketTimeoutException ex){ uID = null; }
+                if(uID != null){
+                    userIDs.add(uID);     // Add UserIDs to the Server's UserID list
+                    // send the userID's name to the GUI
+                    ThreadBridge.pushUser(uID.getName());
+                }
             }
 
-            openSocket(0);     // Open the server socket
-            userID = clientJoin();      // Let the client join the server
-            writeObject(userID, cMap);  // Write Combat Map to client
-            writeObject(userID, wpn);   // Write Weapon to client
-            writeObject(userID, cnsm);  // Write Consumable to client
-            writeObject(userID, armr);  // Write Armor to client
-            writeObject(userID, chmp);  // Write Champion to client
-            writeObject(userID, crtr);  // Write Creature to client
-            writeObject(userID, inv);   // Write Inventory to client
-            closeSocket();              // Close the server socket
+            //userID = clientJoin();           // Let the client join the server
+            writeObject(userIDs.get(0), cMap);  // Write Combat Map to client
+            writeObject(userIDs.get(0), wpn);   // Write Weapon to client
+            writeObject(userIDs.get(0), cnsm);  // Write Consumable to client
+            writeObject(userIDs.get(0), armr);  // Write Armor to client
+            writeObject(userIDs.get(0), chmp);  // Write Champion to client
+            writeObject(userIDs.get(0), crtr);  // Write Creature to client
+            writeObject(userIDs.get(0), inv);   // Write Inventory to client
+            closeSocket();                      // Close the server socket
         } catch(Exception e) {
             e.printStackTrace();
         }
     }
-
-
-    /**
-     * @return Return's the Public IP address of the local machine in String format
-     */
-    public static ArrayList<String> getIP() {
-        ArrayList<String> returnList = new ArrayList<String>();
-        String ip;
-        try {
-            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                NetworkInterface iface = interfaces.nextElement();
-                // filters out 127.0.0.1 and inactive interfaces
-                if (iface.isLoopback() || !iface.isUp()) continue;
-
-                Enumeration<InetAddress> addresses = iface.getInetAddresses();
-                while(addresses.hasMoreElements()) {
-                    InetAddress addr = addresses.nextElement();
-                    ip = addr.getHostAddress();
-                    if(ip.substring(ip.length() - 7, ip.length()).compareTo("%wlp3s0") != 0) returnList.add(ip);
-                }
-
-            }
-        } catch (SocketException e) { throw new RuntimeException(e); }
-        return returnList;  // Return the correct IP addresses
-    }
-
 
     /**
      * Receive a player join packet and send an ack packet
@@ -147,6 +126,16 @@ public class DMServer implements Runnable
             serverSocket = new DatagramSocket(9876);  // open server socket
             serverSocket.setSoTimeout(timeout);            // set timeout to 300 milliseconds
         } catch(SocketException ex) { ex.printStackTrace(); }
+    }
+
+
+    /**
+     * Set server socket's timeout
+     *
+     * @param timeout Integer specifying the socket timeout
+     */
+    public static void changeTimeout(int timeout){
+        try{ serverSocket.setSoTimeout(timeout); } catch(SocketException ex) { ex.printStackTrace(); }
     }
 
 

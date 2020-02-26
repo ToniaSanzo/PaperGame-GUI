@@ -10,6 +10,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Stack;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -20,9 +21,11 @@ public class ThreadBridge {
     private Thread gui;
     private Thread server;
     private Thread client;
-    private static boolean serverFlag = false;
-    private static boolean clientFlag = false;
-    private static boolean guiOn      = true;
+    private static boolean serverFlag        = false;
+    private static boolean clientFlag        = false;
+    private static boolean guiOn             = true;
+    private static boolean gameFlag          = false;
+    private static Stack<String> userIDs     = new Stack<String>();
 
 
 
@@ -96,6 +99,40 @@ public class ThreadBridge {
 
 
     /**
+     * Called when the DM starts the game
+     */
+    public static synchronized void gameOn(){ gameFlag = true; }
+
+
+    /**
+     * @return True if DM started the game, otherwise false
+     */
+    public static synchronized boolean gameStarted(){ return gameFlag; }
+
+
+    /**
+     * @return True if stack is empty otherwise false
+     */
+    public static synchronized boolean userEmpty(){ return userIDs.empty();}
+
+
+    /**
+     * Push user to stack
+     *
+     * @param str user's name
+     */
+    public static synchronized void pushUser(String str){ userIDs.push(str); }
+
+
+    /**
+     * Pop user from stack
+     *
+     * @return user's name
+     */
+    public static synchronized String popUser(){ return userIDs.pop(); }
+
+
+    /**
      * @return Return's the Public IP address of the local machine in String format
      */
     public static ArrayList<String> getIP() {
@@ -120,5 +157,4 @@ public class ThreadBridge {
         } catch (SocketException e) { throw new RuntimeException(e); }
         return returnList;  // Return the correct IP addresses
     }
-
 }

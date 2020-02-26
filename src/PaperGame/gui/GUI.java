@@ -3,14 +3,22 @@ package PaperGame.gui;
 import PaperGame.utility.SaveLoad;
 import PaperGame.entities.Champion;
 import PaperGame.utility.ThreadBridge;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.*;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.*;
 import javafx.scene.control.*;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.*;
 import javafx.scene.image.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.*;
+import javafx.util.Duration;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -34,6 +42,9 @@ public class GUI extends Application implements Runnable {
     Button dmRoomJoinStart;
     Label dmRoomJoinIPAddr;
     ListView<String> dmRoomJoinStartUID;
+    VBox dmRoomJoinPanel;
+    Timeline playerJoining;
+    boolean timelineRunning = false;
 
 
     // Objects used in the Load Character Scene
@@ -196,19 +207,41 @@ public class GUI extends Application implements Runnable {
      * Method called when the user chooses the Dungeon Master button, in the Dungeon Master or Player scene
      */
     private void dmOption() {
+        playerJoining = new Timeline(new KeyFrame(Duration.seconds(.3), new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if(!ThreadBridge.userEmpty()){
+                    dmRoomJoinStartUID.getItems().add(ThreadBridge.popUser() + " joined the party");
+                }
+            }
+        }));
+
         ThreadBridge.serverOn();
         String lblStr = "IP Address\n";
         for(String str: ThreadBridge.getIP()){ lblStr = lblStr.concat(str + "\n"); }
         dmRoomJoinIPAddr = new Label(lblStr);
-        dmRoomJoinStartUID = new ListView<String>();
+        dmRoomJoinStartUID = new ListView<>();
+        dmRoomJoinStartUID.setMouseTransparent( true );
+        dmRoomJoinStartUID.setFocusTraversable( false );
         dmRoomJoinStart  = new Button("Start");
-        dmRoomJoinStart.setOnAction(e -> { System.out.println("start button pressed"); });
-        VBox dmRoomJoinPanel = new VBox(50, dmRoomJoinIPAddr, dmRoomJoinStartUID, dmRoomJoinStart);
+        dmRoomJoinStart.setOnAction(e -> {
+            ThreadBridge.gameOn();
+            playerJoining.stop();
+            timelineRunning = false;
+        });
+        dmRoomJoinPanel = new VBox(50, dmRoomJoinIPAddr, dmRoomJoinStartUID, dmRoomJoinStart);
         dmRoomJoinScene = new Scene(dmRoomJoinPanel, 1200, 900);
         stage.setScene(dmRoomJoinScene);
         stage.setTitle("Join Room");
         stage.show();
+
+
+        playerJoining.setCycleCount(Timeline.INDEFINITE);
+        timelineRunning = true;
+        playerJoining.play();
     }
+
+
 
     /**
      * Method called when the user chooses the Player button, in the Dungeon Master or Player scene
@@ -237,6 +270,7 @@ public class GUI extends Application implements Runnable {
         if(close) {
             stage.close();
             ThreadBridge.guiOff();
+            if(timelineRunning){ playerJoining.stop(); }
         }
     }
 
