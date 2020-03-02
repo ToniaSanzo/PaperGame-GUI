@@ -33,6 +33,12 @@ public class GUI extends Application implements Runnable {
     //----------------- VARIABLES --------------------------------------------------------------------------------------
     Stage stage;
 
+    // Objects used in the CreateUID Scene
+    Scene crtUIDScene;
+    Button crtUIDBtn;
+    TextField crtUIDTxtField;
+    Label crtUIDWelcomeLbl, crtUIDNameLbl;
+
     // Objects used in the Dungeon Master or Player Scene
     Scene dmOrPlyrScene;
     Button dmBtn;
@@ -80,8 +86,6 @@ public class GUI extends Application implements Runnable {
 
 
     //----------------- METHODS ----------------------------------------------------------------------------------------
-    public GUI(){}
-
 
     /**
      * When the program runs the main method, the main method launches the GUI used in javaFX
@@ -114,6 +118,14 @@ public class GUI extends Application implements Runnable {
         panel2.getChildren().addAll(dmOrPlyrLbl,panel1);
         panel2.setAlignment(Pos.CENTER);
         dmOrPlyrScene = new Scene(panel2,400,250);
+
+        /*
+        Scene crtUIDScene;
+        Button crtUIDBtn;
+        TextField crtUIDTxtField;
+        Label crtUIDWelcomeLbl, crtUIDNameLbl;*/
+        // CreateUID Scene
+
 
         // Player-StartUp_Screen
         plyrStartUpWelcomeLbl = new Label("Hello [INSERT USERID HERE]");
@@ -199,13 +211,22 @@ public class GUI extends Application implements Runnable {
         acceptBtn.setAlignment(Pos.CENTER);
         crtChmpScene = new Scene(panel4,730,430);
 
-        primaryStage.setScene(dmOrPlyrScene);
-        primaryStage.setTitle("Choose Role");
-        primaryStage.setOnCloseRequest(e ->{
+        // launch the Start Screen or Create UID Screen
+        if(ThreadBridge.checkUID()){
+
+        } else {
+            initialScreen();
+        }
+    }
+
+    private void initialScreen(){
+        stage.setScene(dmOrPlyrScene);
+        stage.setTitle("Choose Role");
+        stage.setOnCloseRequest(e ->{
             e.consume();
             closeOnYes();
         });
-        primaryStage.show();
+        stage.show();
     }
 
     /**
