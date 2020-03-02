@@ -21,6 +21,7 @@ public class ThreadBridge {
     private Thread gui;
     private Thread server;
     private Thread client;
+    private static boolean uidFlag           = false;
     private static boolean serverFlag        = false;
     private static boolean clientFlag        = false;
     private static boolean guiOn             = true;
@@ -99,9 +100,27 @@ public class ThreadBridge {
 
 
     /**
+     * Called when the User does not have a User ID
+     */
+    public static synchronized void noUID(){ uidFlag = true; }
+
+
+    /**
+     * Called when the User has set up their User ID
+     */
+    public static synchronized void resetUID(){ uidFlag = false;}
+
+
+    /**
      * Called when the DM starts the game
      */
     public static synchronized void gameOn(){ gameFlag = true; }
+
+
+    /**
+     * @return True if myUID is missing, otherwise false
+     */
+    public static synchronized boolean checkUID(){ return uidFlag; }
 
 
     /**

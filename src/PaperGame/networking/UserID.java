@@ -1,8 +1,9 @@
 package PaperGame.networking;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 
-public class UserID {
+public class UserID implements Serializable {
     private int port;            // This user's Port
     private String name;         // This user's name
     private int hashCode;        // This user's hash code

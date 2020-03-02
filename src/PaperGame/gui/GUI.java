@@ -51,9 +51,10 @@ public class GUI extends Application implements Runnable {
 
     // Player-StartUp_Screen objects
     Scene plyrStartUpScene;
-    Label plyrStartUpWelcomeLbl, plyrStartUpSlctChmpLbl, getPlyrStartIpLbl;
+    Label plyrStartUpWelcomeLbl, plyrStartUpSlctChmpLbl, plyrStartIpLbl;
     ObservableList<String> chmpOptions;
     ComboBox plyrStartUpComboBox;
+    TextField ipAddrTxtField;
     Button plyrStartUpBtn;
     VBox plyrStartUpPanel;
 
@@ -120,9 +121,14 @@ public class GUI extends Application implements Runnable {
         plyrStartUpSlctChmpLbl = new Label("Select Champion");
         chmpOptions = FXCollections.observableArrayList(SaveLoad.getChampNameArray());
         plyrStartUpComboBox = new ComboBox(chmpOptions);
+        plyrStartUpComboBox.setValue("Create a Champion");
+        plyrStartIpLbl = new Label("Enter IP Address:");
+        ipAddrTxtField = new TextField();
+        ipAddrTxtField.setMaxWidth(240);
         plyrStartUpBtn = new Button("Join");
-        plyrStartUpBtn.setOnAction(e -> selectChmp("Tonia the Elf Paladin"));
-        plyrStartUpPanel = new VBox(50, plyrStartUpWelcomeLbl, plyrStartUpSlctChmpLbl,plyrStartUpComboBox,plyrStartUpBtn);
+        plyrStartUpBtn.setOnAction(e -> selectChmp(plyrStartUpComboBox.getValue().toString()));
+        plyrStartUpPanel = new VBox(50, plyrStartUpWelcomeLbl, plyrStartUpSlctChmpLbl,plyrStartUpComboBox,
+                plyrStartIpLbl, ipAddrTxtField, plyrStartUpBtn);
         plyrStartUpPanel.setAlignment(Pos.CENTER);
         plyrStartUpScene = new Scene(plyrStartUpPanel,900,500);
 
@@ -192,7 +198,6 @@ public class GUI extends Application implements Runnable {
         chmpNamePanel.setAlignment(Pos.CENTER);
         acceptBtn.setAlignment(Pos.CENTER);
         crtChmpScene = new Scene(panel4,730,430);
-
 
         primaryStage.setScene(dmOrPlyrScene);
         primaryStage.setTitle("Choose Role");
@@ -365,13 +370,17 @@ public class GUI extends Application implements Runnable {
      * @param fileName The name of the champion's object file contained inside ChampionFolder
      */
     private void selectChmp(String fileName){
-        currentChamp = SaveLoad.readChampFromFile(fileName);
-        crtChmpLabelStr = fileName;
 
-        try {
-            createMainChmpScene(currentChamp,crtChmpLabelStr);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        if(fileName.equals("Create a Champion")){
+            crtChmpOption();
+        } else {
+            currentChamp = SaveLoad.readChampFromFile(fileName);
+            crtChmpLabelStr = fileName;
+            try {
+                createMainChmpScene(currentChamp, crtChmpLabelStr);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -439,7 +448,8 @@ public class GUI extends Application implements Runnable {
         tempBtn.setOnAction(e -> MessageBox.show("Under Construction","Tonia"));
 
         //Generate the Right Panel for the Border Panel
-        chmpImg = new Image(new FileInputStream("/media/toniasanzo/ToniaSanzo_1/Pictures/Elf.jpg"));
+        chmpImg = new Image(new FileInputStream(System.getProperty("user.dir") +
+                "/src/PaperGame/res/Pictures/Eric_Koston.jpg"));
         ImageView imgView = new ImageView(chmpImg);
         imgView.setFitHeight(100);
         imgView.setFitWidth(100);

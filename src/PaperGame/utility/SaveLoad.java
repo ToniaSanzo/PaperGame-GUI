@@ -9,6 +9,24 @@ import java.util.Scanner;
 public class SaveLoad {
     final static String DELIMETER = "\n";
 
+    /**
+     * Serializes a UserID object and writes it to a .ser file in the UID directory
+     *
+     * @param serObj
+     */
+    public static void writeUIDToFile(Object serObj) {
+        try {
+            FileOutputStream fOut = new FileOutputStream(System.getProperty("user.dir") +"/src/PaperGame/res" +
+                    "/UID/myUID");
+            ObjectOutputStream oOut = new ObjectOutputStream(fOut);
+            oOut.writeObject(serObj);
+            oOut.close();
+            fOut.close();
+            System.out.println("Save Successful");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
     /**
      * Serializes a champion object and writes it to a .ser file in the ChampionFolder
@@ -106,7 +124,8 @@ public class SaveLoad {
     public static String[] getChampNameArray(){
         try {
             ArrayList<String> strArrayList = new ArrayList<>();
-            String path = System.getProperty("user.dir") + "/src/PaperGame/res/ChampionFolder/champNames.txt";
+            String path = System.getProperty("user.dir") + "/src/PaperGame/res/ChampionFolder/ChampNames.txt";
+            System.out.println(System.getProperty("user.dir"));
             File file = new File(path);
             Scanner scan = new Scanner(file);
             while(scan.hasNextLine()){ strArrayList.add(scan.nextLine()); }
