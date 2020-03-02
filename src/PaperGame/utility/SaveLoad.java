@@ -3,6 +3,8 @@ package PaperGame.utility;
 import PaperGame.entities.Champion;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 public class SaveLoad {
     final static String DELIMETER = "\n";
@@ -15,14 +17,14 @@ public class SaveLoad {
      */
     public static void writeChmpToFile(Object serObj) {
         try {
-            FileOutputStream fOut = new FileOutputStream(System.getProperty("user.dir") +"/src/sam" +
-                    "ple/ChampionFolder/" + serObj.toString());
+            FileOutputStream fOut = new FileOutputStream(System.getProperty("user.dir") +"/src/PaperGame/res" +
+                    "/ChampionFolder/" + serObj.toString());
             ObjectOutputStream oOut = new ObjectOutputStream(fOut);
             oOut.writeObject(serObj);
             oOut.close();
             fOut.close();
-            File chmpNameFile = new File(System.getProperty("user.dir") +"/src/sam" +
-                    "ple/ChampionFolder/ChampNames.txt");
+            File chmpNameFile = new File(System.getProperty("user.dir") +"/src/PaperGame" +
+                    "/res/ChampionFolder/ChampNames.txt");
             FileWriter fWriter = new FileWriter(chmpNameFile,true);
             fWriter.write(serObj.toString() + DELIMETER);
             fWriter.close();
@@ -40,8 +42,8 @@ public class SaveLoad {
      */
     public static void saveExistingChmp(Object serObj) {
         try {
-            FileOutputStream fOut = new FileOutputStream(System.getProperty("user.dir") +"/src/sam" +
-                    "ple/ChampionFolder/" + serObj.toString());
+            FileOutputStream fOut = new FileOutputStream(System.getProperty("user.dir") +"/src/PaperGame/res" +
+                    "/ChampionFolder/" + serObj.toString());
             ObjectOutputStream oOut = new ObjectOutputStream(fOut);
             oOut.writeObject(serObj);
             oOut.close();
@@ -85,7 +87,7 @@ public class SaveLoad {
      * @return return's a champion object, or null if the file is not found
      */
     public static Champion readChampFromFile(String chmpName){
-        String path = System.getProperty("user.dir") +"/src/PaperGame/ChampionFolder/" + chmpName;
+        String path = System.getProperty("user.dir") +"/src/PaperGame/res/ChampionFolder/" + chmpName;
         Object obj = readObjectFromFile(path);
 
         if(obj != null){
@@ -95,6 +97,28 @@ public class SaveLoad {
 
         return null;
     }
-    
 
+
+    /**
+     * Returns a String array of all the champion name's in the champNames.txt file
+     * @return String array of saved Champion names, includes "Create a Champion"
+     */
+    public static String[] getChampNameArray(){
+        try {
+            ArrayList<String> strArrayList = new ArrayList<>();
+            String path = System.getProperty("user.dir") + "/src/PaperGame/res/ChampionFolder/champNames.txt";
+            File file = new File(path);
+            Scanner scan = new Scanner(file);
+            while(scan.hasNextLine()){ strArrayList.add(scan.nextLine()); }
+            String [] rtnValue = new String[strArrayList.size() + 1];
+            for(int i = 0; i < strArrayList.size(); i++){
+                rtnValue[i] = strArrayList.get(i);
+            }
+            rtnValue[rtnValue.length - 1] = "Create a Champion";
+            return rtnValue;
+        } catch (FileNotFoundException ex){
+            System.err.println("champNames.txt File Not Found! I would make one for you but just make one for now");
+            return null;
+        }
+    }
 }

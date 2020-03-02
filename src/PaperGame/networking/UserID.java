@@ -5,7 +5,7 @@ import java.net.InetAddress;
 public class UserID {
     private int port;            // This user's Port
     private String name;         // This user's name
-    private long hashCode;       // This user's hash code
+    private int hashCode;        // This user's hash code
     private InetAddress ipAddr;  // This user's IP address
 
 
@@ -17,11 +17,22 @@ public class UserID {
      * @param ipAddr User's IP address
      * @param port User's port
      */
-    public UserID(String name, long hashCode, InetAddress ipAddr, int port){
+    public UserID(String name, int hashCode, InetAddress ipAddr, int port){
         this.name = name;
         this.hashCode = hashCode;
         this.ipAddr = ipAddr;
         this.port = port;
+    }
+
+
+    /**
+     * Construct a UserID object that connects a user's name and hash code
+     *
+     * @param name User's name
+     */
+    public UserID(String name){
+        this.name = name;
+        this.hashCode = name.hashCode();
     }
 
 

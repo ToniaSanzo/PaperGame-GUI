@@ -6,6 +6,8 @@ import PaperGame.utility.ThreadBridge;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -47,11 +49,14 @@ public class GUI extends Application implements Runnable {
     boolean timelineRunning = false;
 
 
-    // Objects used in the Load Character Scene
-    Scene loadCharacterScene;
-    MenuBar menuBar;
-    Menu menuSlctChmp;
-    MenuItem tempMenuItem, crtChmpItem;
+    // Player-StartUp_Screen objects
+    Scene plyrStartUpScene;
+    Label plyrStartUpWelcomeLbl, plyrStartUpSlctChmpLbl, getPlyrStartIpLbl;
+    ObservableList<String> chmpOptions;
+    ComboBox plyrStartUpComboBox;
+    Button plyrStartUpBtn;
+    VBox plyrStartUpPanel;
+
 
     // Objects used in the Create a Champion Scene
     Scene crtChmpScene;
@@ -109,22 +114,17 @@ public class GUI extends Application implements Runnable {
         panel2.setAlignment(Pos.CENTER);
         dmOrPlyrScene = new Scene(panel2,400,250);
 
-        // Creates the Load Character Scene
-        crtChmpItem = new MenuItem("_Create a Character");
-        crtChmpItem.setOnAction(e -> crtChmpOption());
-        menuBar = new MenuBar();
-        menuSlctChmp = new Menu("_Select a Character");
-        //loadMenuItems();
-        //for(int i = 0; i < 3; i++)
-        tempMenuItem = new MenuItem("Tonia the Human Skateboarder");
-        tempMenuItem.setOnAction(e -> selectChmp("Tonia the Human Warrior"));
-        menuSlctChmp.getItems().add(tempMenuItem);
-        menuSlctChmp.getItems().add(new SeparatorMenuItem());
-        menuSlctChmp.getItems().add(crtChmpItem);
-        menuBar.getMenus().add(menuSlctChmp);
-        VBox panel3 = new VBox(75,menuBar);
-        panel3.setAlignment(Pos.TOP_CENTER);
-        loadCharacterScene = new Scene(panel3,260,320);
+        // Player-StartUp_Screen
+        plyrStartUpWelcomeLbl = new Label("Hello [INSERT USERID HERE]");
+        plyrStartUpWelcomeLbl.setFont(Font.font("Cambria", 32));
+        plyrStartUpSlctChmpLbl = new Label("Select Champion");
+        chmpOptions = FXCollections.observableArrayList(SaveLoad.getChampNameArray());
+        plyrStartUpComboBox = new ComboBox(chmpOptions);
+        plyrStartUpBtn = new Button("Join");
+        plyrStartUpBtn.setOnAction(e -> selectChmp("Tonia the Elf Paladin"));
+        plyrStartUpPanel = new VBox(50, plyrStartUpWelcomeLbl, plyrStartUpSlctChmpLbl,plyrStartUpComboBox,plyrStartUpBtn);
+        plyrStartUpPanel.setAlignment(Pos.CENTER);
+        plyrStartUpScene = new Scene(plyrStartUpPanel,900,500);
 
         // Creates the Create a Champion Scene
         crtChmpLbl = new Label("Click accept to continue");
@@ -220,7 +220,9 @@ public class GUI extends Application implements Runnable {
         String lblStr = "IP Address\n";
         for(String str: ThreadBridge.getIP()){ lblStr = lblStr.concat(str + "\n"); }
         dmRoomJoinIPAddr = new Label(lblStr);
+        dmRoomJoinIPAddr.setFont(Font.font("Cambria", 32));
         dmRoomJoinStartUID = new ListView<>();
+        dmRoomJoinStartUID.setMaxWidth(630);
         dmRoomJoinStartUID.setMouseTransparent( true );
         dmRoomJoinStartUID.setFocusTraversable( false );
         dmRoomJoinStart  = new Button("Start");
@@ -230,6 +232,7 @@ public class GUI extends Application implements Runnable {
             timelineRunning = false;
         });
         dmRoomJoinPanel = new VBox(50, dmRoomJoinIPAddr, dmRoomJoinStartUID, dmRoomJoinStart);
+        dmRoomJoinPanel.setAlignment(Pos.CENTER);
         dmRoomJoinScene = new Scene(dmRoomJoinPanel, 1200, 900);
         stage.setScene(dmRoomJoinScene);
         stage.setTitle("Join Room");
@@ -248,8 +251,8 @@ public class GUI extends Application implements Runnable {
      */
     private void plyrOption() {
         ThreadBridge.clientOn();
-        stage.setScene(loadCharacterScene);
-        stage.setTitle("Load/Create Character");
+        stage.setScene(plyrStartUpScene);
+        stage.setTitle("Join Party");
         stage.show();
     }
 
@@ -410,6 +413,7 @@ public class GUI extends Application implements Runnable {
             e.printStackTrace();
         }
     }
+
 
 
     private void createMainChmpScene(Champion tempChmp,String title) throws FileNotFoundException {
