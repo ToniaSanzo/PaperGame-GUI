@@ -1,6 +1,7 @@
 package PaperGame.networking;
 
 import PaperGame.entities.*;
+import PaperGame.utility.ThreadBridge;
 
 import java.io.*;
 import java.net.*;
@@ -41,13 +42,11 @@ public class PlayerClient implements Runnable
     //- CLEAN UP -------------------------------------------------------------------------------------------------------
     public void run() {
         // Create the clients user id
-        scanner = new Scanner(System.in);
-        System.out.print("Enter user name: ");
-        userName = scanner.nextLine();
         openSocket(20000);
 
-        System.out.print("Enter IP address: ");
-        String ipAddr = scanner.nextLine();
+        while(ThreadBridge.noIP()){
+
+        }
 
         try{
             joinServer(ipAddr);

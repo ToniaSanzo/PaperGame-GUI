@@ -425,11 +425,17 @@ public class GUI extends Application implements Runnable {
 
 
     /**
-     * Given a option, this method will load a already created champion, and change the scene
-     * to reflect that change
+     * Given a champion name, this method will load an already created champion, connect to a GUI and change the scene
+     * to reflect that change.
      * @param fileName The name of the champion's object file contained inside ChampionFolder
      */
     private void selectChmp(String fileName){
+        if(ipAddrTxtField.getText().length() == 0){
+            MessageBox.show("Enter IP address","You need an IP address ");
+            return;
+        }
+
+        System.out.println("You entered " + ipAddrTxtField.getText());
 
         if(fileName.equals("Create a Champion")){
             crtChmpOption();

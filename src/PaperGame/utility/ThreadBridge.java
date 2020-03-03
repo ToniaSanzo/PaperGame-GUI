@@ -15,12 +15,16 @@ public class ThreadBridge {
     private Thread gui;
     private Thread server;
     private Thread client;
-    private static boolean uidFlag           = false;
-    private static boolean serverFlag        = false;
-    private static boolean clientFlag        = false;
-    private static boolean guiOn             = true;
-    private static boolean gameFlag          = false;
-    private static Stack<String> userIDs     = new Stack<String>();
+    private static boolean uidFlag           = false;          // Sets if myUID has not been set yet
+    private static boolean serverFlag        = false;          // Sets when User chooses DM option
+    private static boolean clientFlag        = false;          // Sets when User chooses Player option
+    private static boolean guiOn             = false;          // True while GUI is running
+    private static boolean gameFlag          = false;          // Sets when the DM starts the game
+    private static boolean ipFlag            = false;          // Sets when GUI receives a IP address
+    private static boolean partyFlag         = false;          // Sets when Client successfully joins party
+    private static boolean joinFail          = false;          // Sets when Client fails party join
+    private static String ipAddress          = null;           // IP Address received from GUI
+    private static Stack<String> userIDs     = new Stack<String>(); // DM's party
 
 
 
@@ -143,6 +147,25 @@ public class ThreadBridge {
      * @return user's name
      */
     public static synchronized String popUser(){ return userIDs.pop(); }
+
+
+    /**
+     * Has an IP addressed been entered by the Player
+     *
+     * @return ipFlag value
+     */
+    public static synchronized boolean checkIP(){ return ipFlag; }
+
+
+    /**
+     * Get the IP address the Player has entered, reset the IP address flag
+     *
+     * @return ipAddress entered by Player
+     */
+    public static synchronized String getIpAddress(){
+        ipFlag = false;
+        return ipAddress;
+    }
 
 
     /**
