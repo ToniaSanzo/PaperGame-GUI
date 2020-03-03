@@ -23,10 +23,9 @@ public class Main {
     public static void checkUserID(){
         // Confirm this user has a UserID
         File directory = new File(System.getProperty("user.dir") +"/src/PaperGame/res" +
-                "/UID/");
+                "/UID");
         if (directory.isDirectory()) {
-            String[] files = directory.list();
-            if (files.length > 0) {
+            if (directory.list().length == 0) {
                 ThreadBridge.noUID();
             }
         }

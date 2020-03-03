@@ -1,18 +1,12 @@
 package PaperGame.utility;
 
-import PaperGame.entities.*;
-//import PaperGame.networking.DMServer;
-import PaperGame.networking.UserID;
-
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Stack;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+
 
 public class ThreadBridge {
     private final String CONSUMABLE = "Consumable", WEAPON = "Weapon", ARMOR ="Armor", COMBAT_MAP = "Combat Map",

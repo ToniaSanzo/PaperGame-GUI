@@ -1,5 +1,6 @@
 package PaperGame.gui;
 
+import PaperGame.networking.UserID;
 import PaperGame.utility.SaveLoad;
 import PaperGame.entities.Champion;
 import PaperGame.utility.ThreadBridge;
@@ -38,6 +39,7 @@ public class GUI extends Application implements Runnable {
     Button crtUIDBtn;
     TextField crtUIDTxtField;
     Label crtUIDWelcomeLbl, crtUIDNameLbl;
+    VBox crtUIDPanel;
 
     // Objects used in the Dungeon Master or Player Scene
     Scene dmOrPlyrScene;
@@ -119,17 +121,20 @@ public class GUI extends Application implements Runnable {
         panel2.setAlignment(Pos.CENTER);
         dmOrPlyrScene = new Scene(panel2,400,250);
 
-        /*
-        Scene crtUIDScene;
-        Button crtUIDBtn;
-        TextField crtUIDTxtField;
-        Label crtUIDWelcomeLbl, crtUIDNameLbl;*/
         // CreateUID Scene
-
+        crtUIDWelcomeLbl = new Label("Welcome!");
+        crtUIDWelcomeLbl.setFont(Font.font("Cambria", 32));
+        crtUIDNameLbl = new Label("Enter username:");
+        crtUIDTxtField = new TextField();
+        crtUIDTxtField.setMinWidth(200);
+        crtUIDTxtField.setMaxWidth(200);
+        crtUIDBtn = new Button("Next");
+        crtUIDBtn.setOnAction(e -> processUser());
+        crtUIDPanel = new VBox(50, crtUIDWelcomeLbl, crtUIDNameLbl, crtUIDTxtField, crtUIDBtn);
+        crtUIDPanel.setAlignment(Pos.CENTER);
+        crtUIDScene = new Scene(crtUIDPanel, 700, 500);
 
         // Player-StartUp_Screen
-        plyrStartUpWelcomeLbl = new Label("Hello [INSERT USERID HERE]");
-        plyrStartUpWelcomeLbl.setFont(Font.font("Cambria", 32));
         plyrStartUpSlctChmpLbl = new Label("Select Champion");
         chmpOptions = FXCollections.observableArrayList(SaveLoad.getChampNameArray());
         plyrStartUpComboBox = new ComboBox(chmpOptions);
@@ -139,10 +144,6 @@ public class GUI extends Application implements Runnable {
         ipAddrTxtField.setMaxWidth(240);
         plyrStartUpBtn = new Button("Join");
         plyrStartUpBtn.setOnAction(e -> selectChmp(plyrStartUpComboBox.getValue().toString()));
-        plyrStartUpPanel = new VBox(50, plyrStartUpWelcomeLbl, plyrStartUpSlctChmpLbl,plyrStartUpComboBox,
-                plyrStartIpLbl, ipAddrTxtField, plyrStartUpBtn);
-        plyrStartUpPanel.setAlignment(Pos.CENTER);
-        plyrStartUpScene = new Scene(plyrStartUpPanel,900,500);
 
         // Creates the Create a Champion Scene
         crtChmpLbl = new Label("Click accept to continue");
@@ -213,12 +214,15 @@ public class GUI extends Application implements Runnable {
 
         // launch the Start Screen or Create UID Screen
         if(ThreadBridge.checkUID()){
-
+            crtUser();
         } else {
             initialScreen();
         }
     }
 
+    /**
+     * Initial DM or Player Screen
+     */
     private void initialScreen(){
         stage.setScene(dmOrPlyrScene);
         stage.setTitle("Choose Role");
@@ -276,6 +280,15 @@ public class GUI extends Application implements Runnable {
      * Method called when the user chooses the Player button, in the Dungeon Master or Player scene
      */
     private void plyrOption() {
+        UserID tmpID = (UserID)SaveLoad.readObjectFromFile(System.getProperty("user.dir") + "/src/PaperGame/re" +
+                        "s/UID/myUID");
+
+        plyrStartUpWelcomeLbl = new Label("Hello " + tmpID.getName());
+        plyrStartUpWelcomeLbl.setFont(Font.font("Cambria", 32));
+        plyrStartUpPanel = new VBox(50, plyrStartUpWelcomeLbl, plyrStartUpSlctChmpLbl,plyrStartUpComboBox,
+                plyrStartIpLbl, ipAddrTxtField, plyrStartUpBtn);
+        plyrStartUpPanel.setAlignment(Pos.CENTER);
+        plyrStartUpScene = new Scene(plyrStartUpPanel,900,500);
         ThreadBridge.clientOn();
         stage.setScene(plyrStartUpScene);
         stage.setTitle("Join Party");
@@ -384,6 +397,32 @@ public class GUI extends Application implements Runnable {
                 break;
         }
     }
+
+
+    /**
+     * Create a UserID, save the UserID, update the scene to the initial scene
+     */
+    private void processUser(){
+        if(crtUIDTxtField.getText().length() == 0) {
+            MessageBox.show("Empty Text Field","You need a username");
+            return;
+        }
+        UserID uID = new UserID(crtUIDTxtField.getText());
+        SaveLoad.writeUIDToFile(uID);
+        ThreadBridge.resetUID();
+        initialScreen();
+    }
+
+
+    /**
+     * Create UID Scene
+     */
+    private void crtUser(){
+        stage.setScene(crtUIDScene);
+        stage.setTitle("New Player");
+        stage.show();
+    }
+
 
     /**
      * Given a option, this method will load a already created champion, and change the scene
