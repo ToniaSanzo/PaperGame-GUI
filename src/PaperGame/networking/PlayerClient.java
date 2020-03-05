@@ -41,14 +41,36 @@ public class PlayerClient implements Runnable
 
     //- CLEAN UP -------------------------------------------------------------------------------------------------------
     public void run() {
+        String ipAddr = null;
         // Create the clients user id
-        openSocket(20000);
+        openSocket(1000);
 
-        while(ThreadBridge.noIP()){
+        // Loop until
+        while(!ThreadBridge.checkIP()){
+            // If the GUI is off terminate yourself
+            if(!ThreadBridge.isGuiOn()){
+                Thread.currentThread().interrupt();
+                return;
+            }
 
+            // Sleep for a 1/3 of a second, than do the checks again
+            try { Thread.sleep(333); } catch(InterruptedException ex) { ex.printStackTrace(); }
+        }
+
+
+        while((ipAddr = ThreadBridge.getIpAddress()) != null ){
+            // If the GUI is off terminate yourself
+            if(!ThreadBridge.isGuiOn()){
+                Thread.currentThread().interrupt();
+                return;
+            }
+
+            // Sleep for a 1/3 of a second, than do the checks again
+            try { Thread.sleep(333); } catch(InterruptedException ex) { ex.printStackTrace(); }
         }
 
         try{
+            // Grab IP from ThreadBridge, attempt to connect to the Server
             joinServer(ipAddr);
         } catch(Exception e){
             e.printStackTrace();

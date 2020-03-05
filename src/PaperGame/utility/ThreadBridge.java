@@ -86,6 +86,15 @@ public class ThreadBridge {
 
 
     /**
+     * true  = GUI's on
+     * false = GUI's off
+     *
+     * @return boolean
+     */
+    public static synchronized boolean isGuiOn(){ return guiOn; }
+
+
+    /**
      * Called when user chooses DM role
      */
     public static synchronized void serverOn(){ serverFlag = true; }
@@ -166,6 +175,41 @@ public class ThreadBridge {
         ipFlag = false;
         return ipAddress;
     }
+
+
+    /**
+     * Set an IP address, set the IP address flag to true
+     *
+     * @param ipAddress entered by Player
+     */
+    public static synchronized void ipReceived(String ipAddress){
+        ThreadBridge.ipAddress = ipAddress;
+        ipFlag = true;
+    }
+
+
+    /**
+     * Set the partyFlag to the parameter
+     *
+     * @param partyFlag boolean
+     */
+    public static synchronized void setPartyFlag(boolean partyFlag){ ThreadBridge.partyFlag = partyFlag; }
+
+
+    /**
+     * Return status of the Player joining the server
+     *
+     * @return boolean
+     */
+    public static synchronized boolean joinFailed(){ return joinFail; }
+
+
+    /**
+     * Set whether joining the room was successful or not
+     *
+     * @param joinFail boolean
+     */
+    public static synchronized void setJoinFail(boolean joinFail){ ThreadBridge.joinFail = joinFail; }
 
 
     /**

@@ -435,7 +435,7 @@ public class GUI extends Application implements Runnable {
             return;
         }
 
-        System.out.println("You entered " + ipAddrTxtField.getText());
+        ThreadBridge.ipReceived(ipAddrTxtField.getText());
 
         if(fileName.equals("Create a Champion")){
             crtChmpOption();
