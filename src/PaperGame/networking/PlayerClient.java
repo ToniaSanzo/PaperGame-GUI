@@ -41,7 +41,6 @@ public class PlayerClient implements Runnable
 
     //- CLEAN UP -------------------------------------------------------------------------------------------------------
     public void run() {
-        String ipAddr = null;
         // Create the clients user id
         openSocket(1000);
 
@@ -58,7 +57,7 @@ public class PlayerClient implements Runnable
         }
 
 
-        while((ipAddr = ThreadBridge.getIpAddress()) != null ){
+        while(ThreadBridge.getIpAddress() != null ){
             // If the GUI is off terminate yourself
             if(!ThreadBridge.isGuiOn()){
                 Thread.currentThread().interrupt();
@@ -71,7 +70,7 @@ public class PlayerClient implements Runnable
 
         try{
             // Grab IP from ThreadBridge, attempt to connect to the Server
-            joinServer(ipAddr);
+            joinServer(ThreadBridge.getIpAddress());
         } catch(Exception e){
             e.printStackTrace();
         }
