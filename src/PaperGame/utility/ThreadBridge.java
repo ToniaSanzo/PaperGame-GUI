@@ -15,16 +15,17 @@ public class ThreadBridge {
     private Thread gui;
     private Thread server;
     private Thread client;
-    private static boolean uidFlag           = false;          // Sets if myUID has not been set yet
-    private static boolean serverFlag        = false;          // Sets when User chooses DM option
-    private static boolean clientFlag        = false;          // Sets when User chooses Player option
-    private static boolean guiOn             = false;          // True while GUI is running
-    private static boolean gameFlag          = false;          // Sets when the DM starts the game
-    private static boolean ipFlag            = false;          // Sets when GUI receives a IP address
-    private static boolean partyFlag         = false;          // Sets when Client successfully joins party
-    private static boolean joinFail          = false;          // Sets when Client fails party join
-    private static String ipAddress          = null;           // IP Address received from GUI
-    private static Stack<String> userIDs     = new Stack<String>(); // DM's party
+    private static boolean uidFlag            = false;          // Sets if myUID has not been set yet
+    private static boolean serverFlag         = false;          // Sets when User chooses DM option
+    private static boolean clientFlag         = false;          // Sets when User chooses Player option
+    private static boolean guiOn              = false;          // True while GUI is running
+    private static boolean gameFlag           = false;          // Sets when the DM starts the game
+    private static boolean ipFlag             = false;          // Sets when GUI receives a IP address
+    private static boolean partyFlag          = false;          // Sets when Client successfully joins party
+    private static boolean joinFail           = false;          // Sets when Client fails party join
+    private static boolean attemptedPartyJoin = false;          // Sets when Client attempts to join party
+    private static String ipAddress           = null;           // IP Address received from GUI
+    private static Stack<String> userIDs      = new Stack<String>(); // DM's party
 
 
 
@@ -33,7 +34,6 @@ public class ThreadBridge {
         this.server = server;
         this.client = client;
     }
-
 
     public void init(){
         boolean networkOn = false;
@@ -92,6 +92,20 @@ public class ThreadBridge {
      * @return boolean
      */
     public static synchronized boolean isGuiOn(){ return guiOn; }
+
+
+    /**
+     * @return boolean, true if Client attempted to join party
+     */
+    public static boolean isAttemptedPartyJoin() { return attemptedPartyJoin; }
+
+
+    /**
+     * @param attemptedPartyJoin boolean, true if attempted to join party
+     */
+    public static void setAttemptedPartyJoin(boolean attemptedPartyJoin) {
+        ThreadBridge.attemptedPartyJoin = attemptedPartyJoin;
+    }
 
 
     /**
@@ -164,6 +178,14 @@ public class ThreadBridge {
      * @return ipFlag value
      */
     public static synchronized boolean checkIP(){ return ipFlag; }
+
+
+    /**
+     * Set the ipFlag to the parameter value
+     *
+     * @param ipFlag boolean value
+     */
+    public static synchronized void setIPFlag(boolean ipFlag){ ThreadBridge.ipFlag = ipFlag; }
 
 
     /**

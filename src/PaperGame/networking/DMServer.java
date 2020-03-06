@@ -38,7 +38,7 @@ public class DMServer implements Runnable
 
 
             // Objects created to send to the Client
-            CombatMap cMap = new CombatMap(3, 5, "TEST_1394$");
+            /*CombatMap cMap = new CombatMap(3, 5, "TEST_1394$");
 
             Weapon wpn = new Weapon((short) 3, (short) 3, (short) 3, (short) 3, 30,
                     "Testing Great$word", Item.KNIGHT, (short) 1);
@@ -48,7 +48,7 @@ public class DMServer implements Runnable
             Champion chmp = new Champion("Archer", "Elf", "$en$3i_T3$T");
             Creature crtr = new Creature();
             Inventory inv = new Inventory();
-            inv.addItem(cnsm, armr, wpn);
+            inv.addItem(cnsm, armr, wpn);*/
 
             openSocket(300);      // Open the server socket
 
@@ -63,14 +63,14 @@ public class DMServer implements Runnable
             }
 
             //userID = clientJoin();           // Let the client join the server
-            writeObject(userIDs.get(0), cMap);  // Write Combat Map to client
+            /*writeObject(userIDs.get(0), cMap);  // Write Combat Map to client
             writeObject(userIDs.get(0), wpn);   // Write Weapon to client
             writeObject(userIDs.get(0), cnsm);  // Write Consumable to client
             writeObject(userIDs.get(0), armr);  // Write Armor to client
             writeObject(userIDs.get(0), chmp);  // Write Champion to client
             writeObject(userIDs.get(0), crtr);  // Write Creature to client
             writeObject(userIDs.get(0), inv);   // Write Inventory to client
-            closeSocket();                      // Close the server socket
+            closeSocket();                      // Close the server socket*/
         } catch(Exception e) {
             e.printStackTrace();
         }

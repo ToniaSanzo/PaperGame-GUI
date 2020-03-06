@@ -430,17 +430,23 @@ public class GUI extends Application implements Runnable {
      * @param fileName The name of the champion's object file contained inside ChampionFolder
      */
     private void selectChmp(String fileName){
+        // Quick check to make sure that IP address field is not empty
         if(ipAddrTxtField.getText().length() == 0){
             MessageBox.show("Enter IP address","You need an IP address ");
             return;
         }
 
-        if(fileName.length() == 0){
-            MessageBox.show("Choose a valid champion option", "Invalid champion option");
-            return;
+        // Update ThreadBridge with the IP address the User entered
+        ThreadBridge.ipReceived(ipAddrTxtField.getText());
+
+        // Wait until the client notify's GUI of a server join attempt
+        while(!ThreadBridge.isAttemptedPartyJoin()){
+            try { Thread.sleep(333); } catch(InterruptedException ex){ ex.printStackTrace(); }
         }
 
-        ThreadBridge.ipReceived(ipAddrTxtField.getText());
+        System.out.println("Join Failed: GUI");
+        // Return to the previous screen if the join attempt failed
+        if(ThreadBridge.joinFailed()){ return; }
 
         if(fileName.equals("Create a Champion")){
             crtChmpOption();

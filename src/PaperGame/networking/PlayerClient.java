@@ -40,24 +40,42 @@ public class PlayerClient implements Runnable
         // Create the clients user id
         openSocket(1000);
 
-        // Loop until
-        while(!ThreadBridge.checkIP()){
-            // If the GUI is off terminate yourself
-            if(!ThreadBridge.isGuiOn()){
-                Thread.currentThread().interrupt();
-                return;
+        // Loop until PlayerClient successfully joins the DMServer
+        while(true){
+            System.out.println("Executing PlayerClient loop");
+            ThreadBridge.setAttemptedPartyJoin(false);
+            ThreadBridge.setJoinFail(false);
+            ThreadBridge.setIPFlag(false);
+            while (!ThreadBridge.checkIP()) {
+                // If the GUI is off terminate yourself
+                if (!ThreadBridge.isGuiOn()) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+
+                // Sleep for a 1/3 of a second, than do the checks again
+                try { Thread.sleep(333); } catch (InterruptedException ex) { ex.printStackTrace(); }
             }
 
-            // Sleep for a 1/3 of a second, than do the checks again
-            try { Thread.sleep(333); } catch(InterruptedException ex) { ex.printStackTrace(); }
+            try {
+                // Grab IP from ThreadBridge, attempt to connect to the Server
+                joinServer(ThreadBridge.getIpAddress());
+            } catch (Exception e) {
+                ThreadBridge.setAttemptedPartyJoin(true);
+                ThreadBridge.setJoinFail(true);
+                try {
+                    Thread.sleep(333);
+                } catch(InterruptedException ex){
+                    ex.printStackTrace();
+                }
+                System.err.println("PlayerClient failed to join the DMServer");
+                continue;
+            }
+            ThreadBridge.setAttemptedPartyJoin(true);
+            ThreadBridge.setJoinFail(false);
+            break;
         }
 
-        try{
-            // Grab IP from ThreadBridge, attempt to connect to the Server
-            joinServer(ThreadBridge.getIpAddress());
-        } catch(Exception e){
-            e.printStackTrace();
-        }
 
         for(int i = 0; i < 7; i++){
             try {
