@@ -435,6 +435,11 @@ public class GUI extends Application implements Runnable {
             return;
         }
 
+        if(fileName.length() == 0){
+            MessageBox.show("Choose a valid champion option", "Invalid champion option");
+            return;
+        }
+
         ThreadBridge.ipReceived(ipAddrTxtField.getText());
 
         if(fileName.equals("Create a Champion")){

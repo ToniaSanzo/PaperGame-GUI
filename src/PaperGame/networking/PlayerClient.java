@@ -1,6 +1,7 @@
 package PaperGame.networking;
 
 import PaperGame.entities.*;
+import PaperGame.utility.SaveLoad;
 import PaperGame.utility.ThreadBridge;
 
 import java.io.*;
@@ -11,11 +12,6 @@ import java.util.Scanner;
 
 public class PlayerClient implements Runnable
 {
-    //- CLEAN UP -------------------------------------------------------------------------------------------------------
-    private static String userName;
-    private static Scanner scanner;
-    //------------------------------------------------------------------------------------------------------------------
-
     private static DatagramSocket clientSocket;  // Client Socket used for network communication
     private static UserID serverID;              // Object containing essential info on communication with server
 
@@ -46,18 +42,6 @@ public class PlayerClient implements Runnable
 
         // Loop until
         while(!ThreadBridge.checkIP()){
-            // If the GUI is off terminate yourself
-            if(!ThreadBridge.isGuiOn()){
-                Thread.currentThread().interrupt();
-                return;
-            }
-
-            // Sleep for a 1/3 of a second, than do the checks again
-            try { Thread.sleep(333); } catch(InterruptedException ex) { ex.printStackTrace(); }
-        }
-
-
-        while(ThreadBridge.getIpAddress() != null ){
             // If the GUI is off terminate yourself
             if(!ThreadBridge.isGuiOn()){
                 Thread.currentThread().interrupt();
@@ -102,7 +86,8 @@ public class PlayerClient implements Runnable
      * @return True after successful communication with server, otherwise false
      */
     public static boolean joinServer(String ipAddr) throws Exception{
-
+            String userName = ((UserID)SaveLoad.readObjectFromFile(System.getProperty("user.dir") +
+                    "/src/PaperGame/res/UID/myUID")).getName();
             int hashCode;
             byte[] receiveData = new byte[4];
 
