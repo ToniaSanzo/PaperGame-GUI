@@ -81,10 +81,15 @@ public class GUI extends Application implements Runnable {
 
     // Objects used in the Main Champion Page Screen
     Scene plyrMstrScene;
+    VBox plyrMstrVPanel;
+    HBox plyrMstrHPanel1, plyrMstrHPanel2;
+    BorderPane plyrMstrBPanel;
     Label plyrMstrNameLbl, plyrMstrRaceLbl, plyrMstrClassLbl, plyrMstrExpLbl, plyrMstrGoldLbl, plyrMstrEneryLbl,
             plyrMstrAgiLbl, plyrMstrIntLbl, plyrMstrStrLbl, plyrMstrFrtLbl, plyrMstrEqpdLbl, plyrMstrWpnLbl,
-            plyrMstrHeadLbl, plyrMstrChestLbl, plyrMstrPantsLbl;
-    Label strengthLbl, agilityLbl, intelligenceLbl, fortitudeLbl;
+            plyrMstrHeadLbl, plyrMstrChestLbl, plyrMstrPantsLbl, plyrMstrGlovesLbl, plyrMstrBootsLbl;
+    MenuBar plyrMstrMenuBar;
+    MenuItem plyrMstrTradeMenuItem, plyrMstrInventoryMenuItem;
+    Menu optionsMenu;
     Image chmpImg;
 
 
@@ -504,8 +509,67 @@ public class GUI extends Application implements Runnable {
 
 
     private void createMainChmpScene(Champion tempChmp,String title) throws FileNotFoundException {
-        // Generates the Top Panel for the Border Panel
-        chmpNameLbl = new Label("Name - " + tempChmp.getName());
+
+        // Objects used in the Main Champion Page Screen
+        Scene plyrMstrScene;
+        VBox plyrMstrVPanel;
+        HBox plyrMstrHPanel1, plyrMstrHPanel2;
+        BorderPane plyrMstrBPanel;
+        Label plyrMstrNameLbl, plyrMstrRaceLbl, plyrMstrClassLbl, plyrMstrExpLbl, plyrMstrGoldLbl, plyrMstrEneryLbl,
+                plyrMstrAgiLbl, plyrMstrIntLbl, plyrMstrStrLbl, plyrMstrFrtLbl, plyrMstrEqpdLbl, plyrMstrWpnLbl,
+                plyrMstrHeadLbl, plyrMstrChestLbl, plyrMstrPantLbl, plyrMstrGloveLbl, plyrMstrBootLbl, plyrMstrLvlLbl,
+                plyrMstrHealthLbl, plyrMstrManaLbl;
+        MenuBar plyrMstrMenuBar;
+        MenuItem plyrMstrTradeMenuItem, plyrMstrInventoryMenuItem;
+        Menu optionsMenu;
+        Image chmpImg;
+
+        // Generate the Character info on the left side of the scene
+        plyrMstrNameLbl = new Label("Name: " + tempChmp.getName());
+        plyrMstrRaceLbl = new Label(tempChmp.getRace());
+        plyrMstrClassLbl = new Label(tempChmp.getChampionClass());
+        plyrMstrHPanel1 = new HBox();
+        plyrMstrHPanel1.setAlignment(Pos.CENTER);
+        plyrMstrHPanel1.setSpacing(10);
+        plyrMstrHPanel1.getChildren().addAll(plyrMstrRaceLbl, plyrMstrClassLbl);
+        plyrMstrLvlLbl = new Label("Level: " + tempChmp.getLevel());
+        plyrMstrGoldLbl = new Label("Gold: " + tempChmp.getGold());
+        plyrMstrHPanel2 = new HBox();
+        plyrMstrHPanel2.setAlignment(Pos.CENTER);
+        plyrMstrHPanel2.setSpacing(10);
+        plyrMstrHPanel2.getChildren().addAll(plyrMstrLvlLbl, plyrMstrGoldLbl);
+        plyrMstrHealthLbl = new Label("Health: " + tempChmp.getCurrentHealth() + "/" + tempChmp.getTotalHealth());
+        plyrMstrExpLbl = new Label("Experience Pts: " + tempChmp.getExperiencePts() + "/" + tempChmp.getLevel() * 7);
+        plyrMstrManaLbl = new Label("Mana: " + tempChmp.getCurrentMana() + "/" + tempChmp.getTotalMana());
+        plyrMstrEneryLbl = new Label("Energy: " + tempChmp.getCurrentEnergy() + "/" + tempChmp.getTotalEnergy());
+        plyrMstrAgiLbl = new Label("Agility: " + tempChmp.getAgility());
+        plyrMstrIntLbl = new Label("Intelligence: " + tempChmp.getIntelligence());
+        plyrMstrStrLbl = new Label("Strength: " + tempChmp.getStrength());
+        plyrMstrFrtLbl = new Label("Fortitude: " + tempChmp.getFortitude());
+        plyrMstrEqpdLbl = new Label("Equipped:");
+        if(tempChmp.getWeapon() != null) {
+            plyrMstrWpnLbl = new Label("Weapon: " + tempChmp.getWeapon().getName());
+        } else {
+            plyrMstrWpnLbl = new Label("Weapon: none");
+        }
+        if(tempChmp.getChampHeadGear() != null) {
+            plyrMstrHeadLbl = new Label("Head: " + tempChmp.getChampHeadGear().getName());
+        } else {
+            plyrMstrHeadLbl = new Label("Head: none");
+        }
+        if(tempChmp.getChampHeadGear() != null) {
+            plyrMstrHeadLbl = new Label("Head: " + tempChmp.getChampHeadGear().getName());
+        } else {
+            plyrMstrHeadLbl = new Label("Head: none");
+        }
+        if(tempChmp.getChampTorso() != null){
+            plyrMstrChestLbl = new Label("Chest: " + tempChmp.getChampTorso().getName());
+        } else {
+            plyrMstrChestLbl = new Label("Chest: none");
+        }
+
+
+
         lvlLbl = new Label("Level: 0");
         goldLbl = new Label("Gold: $100");
         chmpRaceLbl = new Label("Race - " + tempChmp.getRace());

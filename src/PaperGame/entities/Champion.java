@@ -456,6 +456,54 @@ public class Champion extends Creature {
 
 
     /**
+     * Returns the champions current head gear
+     *
+     * @return Armor - champions current head gear
+     */
+    public Armor getChampHeadGear(){ return champHeadGear; }
+
+
+    /**
+     * Returns the champions current torso piece
+     *
+     * @return Armor - champions current torso piece
+     */
+    public Armor getChampTorso(){ return champTorso; }
+
+
+    /**
+     * Returns the champions current pants piece
+     *
+     * @return Armor - champions current pants piece
+     */
+    public Armor getChampPants(){ return champPants; }
+
+
+    /**
+     * Returns the champions current boots
+     *
+     * @return Armor - champions current boots
+     */
+    public Armor getChampBoots(){ return champBoots; }
+
+
+    /**
+     * Returns the champions current gloves
+     *
+     * @return Armor - champions current gloves
+     */
+    public Armor getChampGloves(){ return champGloves; }
+
+
+    /**
+     * Returns the champions current jewelry
+     *
+     * @return Armor - champions current jewelry
+     */
+    public Armor getChampJewelry(){ return champJewelry; }
+
+
+    /**
      * Depending on the instance variables of the consumable object, will update the Champions statistics based on those
      * values, and remove the consumable from the Champions inventory
      *
