@@ -80,9 +80,10 @@ public class GUI extends Application implements Runnable {
     Champion currentChamp = null;
 
     // Objects used in the Main Champion Page Screen
-    Scene mainChmpScene;
-    Button lvlUpBtn, consumableBtn, equipmentBtn, tempBtn;
-    Label chmpNameLbl, chmpRaceLbl, chmpClassLbl, lvlLbl, goldLbl, invWeightLbl;
+    Scene plyrMstrScene;
+    Label plyrMstrNameLbl, plyrMstrRaceLbl, plyrMstrClassLbl, plyrMstrExpLbl, plyrMstrGoldLbl, plyrMstrEneryLbl,
+            plyrMstrAgiLbl, plyrMstrIntLbl, plyrMstrStrLbl, plyrMstrFrtLbl, plyrMstrEqpdLbl, plyrMstrWpnLbl,
+            plyrMstrHeadLbl, plyrMstrChestLbl, plyrMstrPantsLbl;
     Label strengthLbl, agilityLbl, intelligenceLbl, fortitudeLbl;
     Image chmpImg;
 
