@@ -12,6 +12,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -86,10 +87,10 @@ public class GUI extends Application implements Runnable {
     BorderPane plyrMstrBPanel;
     Label plyrMstrNameLbl, plyrMstrRaceLbl, plyrMstrClassLbl, plyrMstrExpLbl, plyrMstrGoldLbl, plyrMstrEneryLbl,
             plyrMstrAgiLbl, plyrMstrIntLbl, plyrMstrStrLbl, plyrMstrFrtLbl, plyrMstrEqpdLbl, plyrMstrWpnLbl,
-            plyrMstrHeadLbl, plyrMstrChestLbl, plyrMstrPantsLbl, plyrMstrGlovesLbl, plyrMstrBootsLbl;
+            plyrMstrHeadLbl, plyrMstrChestLbl, plyrMstrPantsLbl, plyrMstrGlovesLbl, plyrMstrBootsLbl, plyrMstrLvlLbl,
+            plyrMstrHealthLbl, plyrMstrManaLbl, plyrMstrJewelryLbl;
     MenuBar plyrMstrMenuBar;
-    MenuItem plyrMstrTradeMenuItem, plyrMstrInventoryMenuItem;
-    Menu optionsMenu;
+    Menu plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrOptionsMenu;
     Image chmpImg;
 
 
@@ -458,12 +459,7 @@ public class GUI extends Application implements Runnable {
             crtChmpOption();
         } else {
             currentChamp = SaveLoad.readChampFromFile(fileName);
-            crtChmpLabelStr = fileName;
-            try {
-                createMainChmpScene(currentChamp, crtChmpLabelStr);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
+            createMainChmpScene(currentChamp);
         }
     }
 
@@ -499,30 +495,16 @@ public class GUI extends Application implements Runnable {
         currentChamp = new Champion(classStr,raceStr,nameStr);
         SaveLoad.writeChmpToFile(currentChamp);
 
-        try {
-            createMainChmpScene(currentChamp,crtChmpLabelStr);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        createMainChmpScene(currentChamp);
     }
 
 
-
-    private void createMainChmpScene(Champion tempChmp,String title) throws FileNotFoundException {
-
-        // Objects used in the Main Champion Page Screen
-        Scene plyrMstrScene;
-        VBox plyrMstrVPanel;
-        HBox plyrMstrHPanel1, plyrMstrHPanel2;
-        BorderPane plyrMstrBPanel;
-        Label plyrMstrNameLbl, plyrMstrRaceLbl, plyrMstrClassLbl, plyrMstrExpLbl, plyrMstrGoldLbl, plyrMstrEneryLbl,
-                plyrMstrAgiLbl, plyrMstrIntLbl, plyrMstrStrLbl, plyrMstrFrtLbl, plyrMstrEqpdLbl, plyrMstrWpnLbl,
-                plyrMstrHeadLbl, plyrMstrChestLbl, plyrMstrPantLbl, plyrMstrGloveLbl, plyrMstrBootLbl, plyrMstrLvlLbl,
-                plyrMstrHealthLbl, plyrMstrManaLbl;
-        MenuBar plyrMstrMenuBar;
-        MenuItem plyrMstrTradeMenuItem, plyrMstrInventoryMenuItem;
-        Menu optionsMenu;
-        Image chmpImg;
+    /**
+     * Generate Player Master Screen
+     *
+     * @param tempChmp The Player's Champion
+     */
+    private void createMainChmpScene(Champion tempChmp){
 
         // Generate the Character info on the left side of the scene
         plyrMstrNameLbl = new Label("Name: " + tempChmp.getName());
@@ -552,10 +534,10 @@ public class GUI extends Application implements Runnable {
         } else {
             plyrMstrWpnLbl = new Label("Weapon: none");
         }
-        if(tempChmp.getChampHeadGear() != null) {
-            plyrMstrHeadLbl = new Label("Head: " + tempChmp.getChampHeadGear().getName());
+        if(tempChmp.getChampJewelry() != null) {
+            plyrMstrJewelryLbl = new Label("Jewelry: " + tempChmp.getChampJewelry().getName());
         } else {
-            plyrMstrHeadLbl = new Label("Head: none");
+            plyrMstrJewelryLbl = new Label("Jewelry: none");
         }
         if(tempChmp.getChampHeadGear() != null) {
             plyrMstrHeadLbl = new Label("Head: " + tempChmp.getChampHeadGear().getName());
@@ -567,68 +549,52 @@ public class GUI extends Application implements Runnable {
         } else {
             plyrMstrChestLbl = new Label("Chest: none");
         }
+        if(tempChmp.getChampPants() != null){
+            plyrMstrPantsLbl = new Label("Pants: " + tempChmp.getChampPants().getName());
+        } else {
+            plyrMstrPantsLbl = new Label("Pants: none");
+        }
+        if(tempChmp.getChampGloves() != null){
+            plyrMstrGlovesLbl = new Label("Gloves: " + tempChmp.getChampGloves().getName());
+        } else {
+            plyrMstrGlovesLbl = new Label("Gloves: none");
+        }
+        if(tempChmp.getChampBoots() != null){
+            plyrMstrBootsLbl = new Label("Boots: " + tempChmp.getChampGloves().getName());
+        } else {
+            plyrMstrBootsLbl = new Label("Boots: none");
+        }
 
+        // Add all the Champions stats node to the VBox
+        plyrMstrVPanel = new VBox();
+        plyrMstrVPanel.getChildren().addAll(
+                plyrMstrNameLbl, plyrMstrHPanel1, plyrMstrHPanel2, plyrMstrExpLbl, plyrMstrHealthLbl, plyrMstrEneryLbl,
+                plyrMstrAgiLbl, plyrMstrIntLbl, plyrMstrStrLbl, plyrMstrFrtLbl, plyrMstrEqpdLbl, plyrMstrWpnLbl,
+                plyrMstrHeadLbl, plyrMstrJewelryLbl, plyrMstrChestLbl, plyrMstrPantsLbl, plyrMstrGlovesLbl,
+                plyrMstrBootsLbl
+        );
+        plyrMstrVPanel.setPadding(new Insets(10));
+        plyrMstrVPanel.setSpacing(8);
 
+        // Set up the Champion Master MenuBar
+        plyrMstrTradeMenu = new Menu("Trade");
+        plyrMstrTradeMenu.setOnAction( e -> System.out.println("Clicked Trade"));
+        plyrMstrInventoryMenu = new Menu("Inventory");
+        plyrMstrInventoryMenu.setOnAction(e -> System.out.println("Inventory clicked"));
+        plyrMstrMenuBar = new MenuBar();
+        plyrMstrMenuBar.getMenus().addAll(plyrMstrTradeMenu, plyrMstrInventoryMenu);
 
-        lvlLbl = new Label("Level: 0");
-        goldLbl = new Label("Gold: $100");
-        chmpRaceLbl = new Label("Race - " + tempChmp.getRace());
-        chmpClassLbl = new Label("Class - " + tempChmp.getChampionClass());
-        //yournode.setStyle("-fx-background-color: #" + enteredByUser);
+        // Set up the Champion Master panel
+        plyrMstrBPanel = new BorderPane();
+        plyrMstrBPanel.setLeft(plyrMstrVPanel);
+        plyrMstrBPanel.setTop(plyrMstrMenuBar);
 
-        // Generates the Left Panel for the Border Panel
-        strengthLbl = new Label("Strength: " + tempChmp.getStrength());
-        agilityLbl = new Label("Agility: " + tempChmp.getAgility());
-        intelligenceLbl = new Label("Intelligence: " + tempChmp.getIntelligence());
-        fortitudeLbl = new Label("Fortitude: " + tempChmp.getFortitude());
-        lvlUpBtn = new Button("LEVEL UP!");
-        lvlUpBtn.setOnAction(e -> MessageBox.show("Under Construction","Tonia"));
-        VBox leftVBox1 = new VBox(20,strengthLbl,agilityLbl,intelligenceLbl,fortitudeLbl,lvlUpBtn);
+        // Init Player Master Scene
+        plyrMstrScene = new Scene(plyrMstrBPanel, 900, 600);
 
-        // Generate the Center Panel for the Border Panel
-        tempBtn = new Button("PAPER GAME \n user interface\n\n here?");
-        tempBtn.setOnAction(e -> MessageBox.show("Under Construction","Tonia"));
-
-        //Generate the Right Panel for the Border Panel
-        chmpImg = new Image(new FileInputStream(System.getProperty("user.dir") +
-                "/src/PaperGame/res/Pictures/Eric_Koston.jpg"));
-        ImageView imgView = new ImageView(chmpImg);
-        imgView.setFitHeight(100);
-        imgView.setFitWidth(100);
-        imgView.setPreserveRatio(true);
-        Group imgRoot = new Group(imgView);
-        consumableBtn = new Button("Consumables");
-        consumableBtn.setOnAction(e -> MessageBox.show("Under Construction","Tonia"));
-        equipmentBtn = new Button("Equipment");
-        equipmentBtn.setOnAction(e -> MessageBox.show("Under Construction","Tonia"));
-        invWeightLbl = new Label("Inventory Weight: 5/16");
-        VBox rightVBox1 = new VBox(10,consumableBtn,equipmentBtn,invWeightLbl);
-        VBox rightVBox2 = new VBox(45,imgRoot,rightVBox1);
-
-        // Putting the Border Pane together
-        GridPane gPanel = new GridPane();
-        gPanel.add(chmpNameLbl,0,0);
-        gPanel.setHalignment(chmpNameLbl, HPos.LEFT);
-        gPanel.add(lvlLbl,1,0);
-        gPanel.setHalignment(lvlLbl,HPos.CENTER);
-        gPanel.add(goldLbl,2,0);
-        gPanel.setHalignment(goldLbl,HPos.RIGHT);
-        gPanel.add(chmpRaceLbl,0,1);
-        gPanel.setHalignment(chmpRaceLbl,HPos.LEFT);
-        gPanel.add(chmpClassLbl,2,1);
-        gPanel.setHalignment(chmpClassLbl,HPos.RIGHT);
-        gPanel.add(leftVBox1,0,2);
-        gPanel.setHalignment(leftVBox1,HPos.LEFT);
-        gPanel.add(tempBtn,1,2);
-        gPanel.setHalignment(tempBtn,HPos.CENTER);
-        gPanel.add(rightVBox2,2,2);
-        gPanel.setHalignment(rightVBox2,HPos.RIGHT);
-        gPanel.setHgap(50);
-        gPanel.setVgap(10);
-
-        mainChmpScene = new Scene(gPanel,460,350);
-        stage.setScene(mainChmpScene);
-        stage.setTitle(title);
+        // Set scene and show the stage
+        stage.setScene(plyrMstrScene);
+        stage.setTitle(tempChmp.getName());
         stage.show();
     }
 
