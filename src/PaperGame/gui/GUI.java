@@ -91,7 +91,8 @@ public class GUI extends Application implements Runnable {
             plyrMstrHealthLbl, plyrMstrManaLbl, plyrMstrJewelryLbl;
     MenuBar plyrMstrMenuBar;
     Menu plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrOptionsMenu;
-    Image chmpImg;
+    Image plyrMstrChmpImg;
+    ImageView plyrMstrChmpImgView;
 
 
     //----------------- METHODS ----------------------------------------------------------------------------------------
@@ -451,7 +452,6 @@ public class GUI extends Application implements Runnable {
             try { Thread.sleep(333); } catch(InterruptedException ex){ ex.printStackTrace(); }
         }
 
-        System.out.println("Join Failed: GUI");
         // Return to the previous screen if the join attempt failed
         if(ThreadBridge.joinFailed()){ return; }
 
@@ -505,8 +505,13 @@ public class GUI extends Application implements Runnable {
      * @param tempChmp The Player's Champion
      */
     private void createMainChmpScene(Champion tempChmp){
-
         // Generate the Character info on the left side of the scene
+        plyrMstrChmpImg = new Image("file:" + System.getProperty("user.dir") + "/src/PaperGame/res/Pictures/Eric_K" +
+                "oston.jpg");
+        plyrMstrChmpImgView = new ImageView(plyrMstrChmpImg);
+        plyrMstrChmpImgView.setFitHeight(180);
+        plyrMstrChmpImgView.setFitWidth(180);
+        plyrMstrChmpImgView.setPreserveRatio(true);
         plyrMstrNameLbl = new Label("Name: " + tempChmp.getName());
         plyrMstrRaceLbl = new Label(tempChmp.getRace());
         plyrMstrClassLbl = new Label(tempChmp.getChampionClass());
@@ -568,18 +573,26 @@ public class GUI extends Application implements Runnable {
         // Add all the Champions stats node to the VBox
         plyrMstrVPanel = new VBox();
         plyrMstrVPanel.getChildren().addAll(
-                plyrMstrNameLbl, plyrMstrHPanel1, plyrMstrHPanel2, plyrMstrExpLbl, plyrMstrHealthLbl, plyrMstrEneryLbl,
-                plyrMstrAgiLbl, plyrMstrIntLbl, plyrMstrStrLbl, plyrMstrFrtLbl, plyrMstrEqpdLbl, plyrMstrWpnLbl,
-                plyrMstrHeadLbl, plyrMstrJewelryLbl, plyrMstrChestLbl, plyrMstrPantsLbl, plyrMstrGlovesLbl,
-                plyrMstrBootsLbl
+                plyrMstrChmpImgView, plyrMstrNameLbl, plyrMstrHPanel1, plyrMstrHPanel2, plyrMstrExpLbl,
+                plyrMstrHealthLbl, plyrMstrEneryLbl, plyrMstrAgiLbl, plyrMstrIntLbl, plyrMstrStrLbl, plyrMstrFrtLbl,
+                plyrMstrEqpdLbl, plyrMstrWpnLbl, plyrMstrHeadLbl, plyrMstrJewelryLbl, plyrMstrChestLbl,
+                plyrMstrPantsLbl, plyrMstrGlovesLbl, plyrMstrBootsLbl
         );
         plyrMstrVPanel.setPadding(new Insets(10));
         plyrMstrVPanel.setSpacing(8);
 
         // Set up the Champion Master MenuBar
+        MenuItem dummyItemA = new MenuItem();
+        MenuItem dummyItemB = new MenuItem();
         plyrMstrTradeMenu = new Menu("Trade");
+        plyrMstrTradeMenu.getItems().add(dummyItemA);
+        plyrMstrTradeMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrTradeMenu.hide());
+        plyrMstrTradeMenu.addEventHandler(Menu.ON_SHOWING, e -> plyrMstrTradeMenu.fire());
         plyrMstrTradeMenu.setOnAction( e -> System.out.println("Clicked Trade"));
         plyrMstrInventoryMenu = new Menu("Inventory");
+        plyrMstrInventoryMenu.getItems().add(dummyItemB);
+        plyrMstrInventoryMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrInventoryMenu.hide());
+        plyrMstrInventoryMenu.addEventHandler(Menu.ON_SHOWING, e -> plyrMstrInventoryMenu.fire());
         plyrMstrInventoryMenu.setOnAction(e -> System.out.println("Inventory clicked"));
         plyrMstrMenuBar = new MenuBar();
         plyrMstrMenuBar.getMenus().addAll(plyrMstrTradeMenu, plyrMstrInventoryMenu);
@@ -590,7 +603,7 @@ public class GUI extends Application implements Runnable {
         plyrMstrBPanel.setTop(plyrMstrMenuBar);
 
         // Init Player Master Scene
-        plyrMstrScene = new Scene(plyrMstrBPanel, 900, 600);
+        plyrMstrScene = new Scene(plyrMstrBPanel, 960, 650);
 
         // Set scene and show the stage
         stage.setScene(plyrMstrScene);
