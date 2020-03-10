@@ -503,6 +503,9 @@ public class GUI extends Application implements Runnable {
      * Generate Player Master Screen
      */
     private void createMainChmpScene(){
+        // Prevent null pointer exceptions
+        if(currentChamp == null){ return; }
+
         // Generate the Character info on the left side of the scene
         plyrMstrChmpImg = new Image("file:" + System.getProperty("user.dir") + "/src/PaperGame/res/Pictures/Eric_K" +
                 "oston.jpg");

@@ -1,5 +1,7 @@
 package PaperGame.entities;
 
+import javafx.scene.image.Image;
+
 import java.io.*;
 import java.lang.Math;
 import java.util.HashMap;
@@ -25,6 +27,7 @@ public class Champion extends Creature {
     private int experiencePts;           // The Champions current experience points
     private int currentInventoryWeight;  // The Champions current inventory weight
     private int totalInventoryWeight;    // The Champions total inventory capacity
+    private Image champPic;              // The Champions current picture
 
 
     /**
