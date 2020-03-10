@@ -90,7 +90,7 @@ public class GUI extends Application implements Runnable {
             plyrMstrHeadLbl, plyrMstrChestLbl, plyrMstrPantsLbl, plyrMstrGlovesLbl, plyrMstrBootsLbl, plyrMstrLvlLbl,
             plyrMstrHealthLbl, plyrMstrManaLbl, plyrMstrJewelryLbl;
     MenuBar plyrMstrMenuBar;
-    Menu plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrOptionsMenu;
+    Menu plyrMstrTradeMenu, plyrMstrInventoryMenu;
     Image plyrMstrChmpImg;
     ImageView plyrMstrChmpImgView;
 
@@ -459,7 +459,7 @@ public class GUI extends Application implements Runnable {
             crtChmpOption();
         } else {
             currentChamp = SaveLoad.readChampFromFile(fileName);
-            createMainChmpScene(currentChamp);
+            createMainChmpScene();
         }
     }
 
@@ -495,16 +495,14 @@ public class GUI extends Application implements Runnable {
         currentChamp = new Champion(classStr,raceStr,nameStr);
         SaveLoad.writeChmpToFile(currentChamp);
 
-        createMainChmpScene(currentChamp);
+        createMainChmpScene();
     }
 
 
     /**
      * Generate Player Master Screen
-     *
-     * @param tempChmp The Player's Champion
      */
-    private void createMainChmpScene(Champion tempChmp){
+    private void createMainChmpScene(){
         // Generate the Character info on the left side of the scene
         plyrMstrChmpImg = new Image("file:" + System.getProperty("user.dir") + "/src/PaperGame/res/Pictures/Eric_K" +
                 "oston.jpg");
@@ -512,60 +510,60 @@ public class GUI extends Application implements Runnable {
         plyrMstrChmpImgView.setFitHeight(180);
         plyrMstrChmpImgView.setFitWidth(180);
         plyrMstrChmpImgView.setPreserveRatio(true);
-        plyrMstrNameLbl = new Label("Name: " + tempChmp.getName());
-        plyrMstrRaceLbl = new Label(tempChmp.getRace());
-        plyrMstrClassLbl = new Label(tempChmp.getChampionClass());
+        plyrMstrNameLbl = new Label("Name: " + currentChamp.getName());
+        plyrMstrRaceLbl = new Label(currentChamp.getRace());
+        plyrMstrClassLbl = new Label(currentChamp.getChampionClass());
         plyrMstrHPanel1 = new HBox();
         plyrMstrHPanel1.setAlignment(Pos.CENTER);
         plyrMstrHPanel1.setSpacing(10);
         plyrMstrHPanel1.getChildren().addAll(plyrMstrRaceLbl, plyrMstrClassLbl);
-        plyrMstrLvlLbl = new Label("Level: " + tempChmp.getLevel());
-        plyrMstrGoldLbl = new Label("Gold: " + tempChmp.getGold());
+        plyrMstrLvlLbl = new Label("Level: " + currentChamp.getLevel());
+        plyrMstrGoldLbl = new Label("Gold: " + currentChamp.getGold());
         plyrMstrHPanel2 = new HBox();
         plyrMstrHPanel2.setAlignment(Pos.CENTER);
         plyrMstrHPanel2.setSpacing(10);
         plyrMstrHPanel2.getChildren().addAll(plyrMstrLvlLbl, plyrMstrGoldLbl);
-        plyrMstrHealthLbl = new Label("Health: " + tempChmp.getCurrentHealth() + "/" + tempChmp.getTotalHealth());
-        plyrMstrExpLbl = new Label("Experience Pts: " + tempChmp.getExperiencePts() + "/" + tempChmp.getLevel() * 7);
-        plyrMstrManaLbl = new Label("Mana: " + tempChmp.getCurrentMana() + "/" + tempChmp.getTotalMana());
-        plyrMstrEneryLbl = new Label("Energy: " + tempChmp.getCurrentEnergy() + "/" + tempChmp.getTotalEnergy());
-        plyrMstrAgiLbl = new Label("Agility: " + tempChmp.getAgility());
-        plyrMstrIntLbl = new Label("Intelligence: " + tempChmp.getIntelligence());
-        plyrMstrStrLbl = new Label("Strength: " + tempChmp.getStrength());
-        plyrMstrFrtLbl = new Label("Fortitude: " + tempChmp.getFortitude());
+        plyrMstrHealthLbl = new Label("Health: " + currentChamp.getCurrentHealth() + "/" + currentChamp.getTotalHealth());
+        plyrMstrExpLbl = new Label("Experience Pts: " + currentChamp.getExperiencePts() + "/" + currentChamp.getLevel() * 7);
+        plyrMstrManaLbl = new Label("Mana: " + currentChamp.getCurrentMana() + "/" + currentChamp.getTotalMana());
+        plyrMstrEneryLbl = new Label("Energy: " + currentChamp.getCurrentEnergy() + "/" + currentChamp.getTotalEnergy());
+        plyrMstrAgiLbl = new Label("Agility: " + currentChamp.getAgility());
+        plyrMstrIntLbl = new Label("Intelligence: " + currentChamp.getIntelligence());
+        plyrMstrStrLbl = new Label("Strength: " + currentChamp.getStrength());
+        plyrMstrFrtLbl = new Label("Fortitude: " + currentChamp.getFortitude());
         plyrMstrEqpdLbl = new Label("Equipped:");
-        if(tempChmp.getWeapon() != null) {
-            plyrMstrWpnLbl = new Label("Weapon: " + tempChmp.getWeapon().getName());
+        if(currentChamp.getWeapon() != null) {
+            plyrMstrWpnLbl = new Label("Weapon: " + currentChamp.getWeapon().getName());
         } else {
             plyrMstrWpnLbl = new Label("Weapon: none");
         }
-        if(tempChmp.getChampJewelry() != null) {
-            plyrMstrJewelryLbl = new Label("Jewelry: " + tempChmp.getChampJewelry().getName());
+        if(currentChamp.getChampJewelry() != null) {
+            plyrMstrJewelryLbl = new Label("Jewelry: " + currentChamp.getChampJewelry().getName());
         } else {
             plyrMstrJewelryLbl = new Label("Jewelry: none");
         }
-        if(tempChmp.getChampHeadGear() != null) {
-            plyrMstrHeadLbl = new Label("Head: " + tempChmp.getChampHeadGear().getName());
+        if(currentChamp.getChampHeadGear() != null) {
+            plyrMstrHeadLbl = new Label("Head: " + currentChamp.getChampHeadGear().getName());
         } else {
             plyrMstrHeadLbl = new Label("Head: none");
         }
-        if(tempChmp.getChampTorso() != null){
-            plyrMstrChestLbl = new Label("Chest: " + tempChmp.getChampTorso().getName());
+        if(currentChamp.getChampTorso() != null){
+            plyrMstrChestLbl = new Label("Chest: " + currentChamp.getChampTorso().getName());
         } else {
             plyrMstrChestLbl = new Label("Chest: none");
         }
-        if(tempChmp.getChampPants() != null){
-            plyrMstrPantsLbl = new Label("Pants: " + tempChmp.getChampPants().getName());
+        if(currentChamp.getChampPants() != null){
+            plyrMstrPantsLbl = new Label("Pants: " + currentChamp.getChampPants().getName());
         } else {
             plyrMstrPantsLbl = new Label("Pants: none");
         }
-        if(tempChmp.getChampGloves() != null){
-            plyrMstrGlovesLbl = new Label("Gloves: " + tempChmp.getChampGloves().getName());
+        if(currentChamp.getChampGloves() != null){
+            plyrMstrGlovesLbl = new Label("Gloves: " + currentChamp.getChampGloves().getName());
         } else {
             plyrMstrGlovesLbl = new Label("Gloves: none");
         }
-        if(tempChmp.getChampBoots() != null){
-            plyrMstrBootsLbl = new Label("Boots: " + tempChmp.getChampGloves().getName());
+        if(currentChamp.getChampBoots() != null){
+            plyrMstrBootsLbl = new Label("Boots: " + currentChamp.getChampGloves().getName());
         } else {
             plyrMstrBootsLbl = new Label("Boots: none");
         }
@@ -607,7 +605,7 @@ public class GUI extends Application implements Runnable {
 
         // Set scene and show the stage
         stage.setScene(plyrMstrScene);
-        stage.setTitle(tempChmp.getName());
+        stage.setTitle(currentChamp.getName());
         stage.show();
     }
 
