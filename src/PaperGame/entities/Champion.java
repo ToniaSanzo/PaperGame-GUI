@@ -1,5 +1,7 @@
 package PaperGame.entities;
 
+import javafx.scene.image.Image;
+
 import java.io.*;
 import java.lang.Math;
 import java.util.HashMap;
@@ -25,6 +27,7 @@ public class Champion extends Creature {
     private int experiencePts;           // The Champions current experience points
     private int currentInventoryWeight;  // The Champions current inventory weight
     private int totalInventoryWeight;    // The Champions total inventory capacity
+    private Image champImage;            // The Champion's image
 
 
     /**
@@ -34,7 +37,7 @@ public class Champion extends Creature {
      * @param championRace Represents the champion's race, e.g) Dwarf
      * @param championName Represents the champion's name
      */
-    public Champion(String championClass,String championRace, String championName){
+    public Champion(String championClass, String championRace, String championName){
         super((short)2,(short)2,(short)2,(short)2,championName);
         this.championClass  = championClass;
         this.championRace   = championRace;
@@ -84,6 +87,72 @@ public class Champion extends Creature {
             changeIntelligence((short)2);
             decrementStrength();
         }
+
+        champImage = new Image("file:" + System.getProperty("user.dir") + "/src/PaperGame/res/Pictures/Eric_K" +
+                "oston.jpg");
+    }
+
+
+    /**
+     * Constructor for the Champion class, this will be used to create a unique champion.
+     *
+     * @param championClass Represents the champion's class, e.g) Archer
+     * @param championRace Represents the champion's race, e.g) Dwarf
+     * @param championName Represents the champion's name
+     * @param championImage Represents the champion's image
+     */
+    public Champion(String championClass, String championRace, String championName, Image championImage){
+        super((short)2,(short)2,(short)2,(short)2,championName);
+        this.championClass  = championClass;
+        this.championRace   = championRace;
+        this.champHeadGear  = null;
+        this.champTorso     = null;
+        this.champPants     = null;
+        this.champBoots     = null;
+        this.champGloves    = null;
+        this.champJewelry   = null;
+
+        if(championClass.equals(ARCHER)) {
+            changeAgility((short)2);
+            // add equipment here eventually
+        }
+
+        if(championClass.equals(WARRIOR)) {
+            changeStrength((short)2);
+            // add equipment here eventually
+        }
+
+        if(championClass.equals(MAGE)) {
+            changeIntelligence((short)2);
+            // add equipment here eventually
+        }
+
+        if(championClass.equals(PALADIN)) {
+            changeFortitude((short)2);
+            // add equipment here eventually
+        }
+
+        if(championRace.equals(ELF)) {
+            changeAgility((short)2);
+            decrementFortitude();
+        }
+
+        if(championRace.equals(DWARF)) {
+            changeFortitude((short)2);
+            decrementAgility();
+        }
+
+        if(championRace.equals(ORC)) {
+            changeStrength((short)2);
+            decrementIntelligence();
+        }
+
+        if(championRace.equals(HUMAN)) {
+            changeIntelligence((short)2);
+            decrementStrength();
+        }
+
+        champImage = championImage;
     }
 
 

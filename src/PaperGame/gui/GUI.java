@@ -9,6 +9,7 @@ import javafx.animation.Timeline;
 import javafx.application.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -24,8 +25,12 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.*;
 import javafx.util.Duration;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 public class GUI extends Application implements Runnable {
@@ -70,7 +75,7 @@ public class GUI extends Application implements Runnable {
 
     // Objects used in the Create a Champion Scene
     Scene crtChmpScene;
-    Button acceptBtn;
+    Button acceptBtn, imageBtn;
     Button orcBtn, elfBtn, dwarfBtn, humanBtn;
     Button archerBtn, warriorBtn, mageBtn, paladinBtn;
     Tooltip orcTT, elfTT, dwarfTT, humanTT;
@@ -79,6 +84,7 @@ public class GUI extends Application implements Runnable {
     TextField chmpName;
     String nameStr,raceStr,classStr,crtChmpLabelStr;
     Champion currentChamp = null;
+    Image champImage = null;
 
     // Objects used in the Main Champion Page Screen
     Scene plyrMstrScene;
@@ -211,8 +217,11 @@ public class GUI extends Application implements Runnable {
         mageBtn.setStyle("-fx-background-color: #808080");
         acceptBtn = new Button("Accept");
         acceptBtn.setOnAction(e -> accept());
+        imageBtn = new Button("Browse for Image");
+        imageBtn.setOnAction(e -> imageOpt());
         HBox classPanel = new HBox(50, archerBtn, warriorBtn, paladinBtn, mageBtn);
-        VBox panel4 = new VBox(65,crtChmpLbl, chmpNamePanel, racePanel, classPanel, acceptBtn);
+        HBox crtChmpBtnPane = new HBox(50, acceptBtn, imageBtn);
+        VBox panel4 = new VBox(65,crtChmpLbl, chmpNamePanel, racePanel, classPanel, crtChmpBtnPane);
         panel4.setAlignment(Pos.CENTER);
         classPanel.setAlignment(Pos.CENTER);
         racePanel.setAlignment(Pos.CENTER);
@@ -503,6 +512,9 @@ public class GUI extends Application implements Runnable {
      * Generate Player Master Screen
      */
     private void createMainChmpScene(){
+        // Prevent null pointer exceptions
+        if(currentChamp == null){ return; }
+
         // Generate the Character info on the left side of the scene
         plyrMstrChmpImg = new Image("file:" + System.getProperty("user.dir") + "/src/PaperGame/res/Pictures/Eric_K" +
                 "oston.jpg");
@@ -609,7 +621,28 @@ public class GUI extends Application implements Runnable {
         stage.show();
     }
 
-    private void loadMenuItems(){
-        String path = "./ChampionFolder/ChampNames.txt";
+
+    /**
+     * Browse files for an image file
+     * Code from Java-Buddy.blogspot.com
+     */
+    public void imageOpt(){
+        FileChooser fileChooser = new FileChooser();
+
+        // Set extension filter
+        FileChooser.ExtensionFilter extFilterJPG =
+                new FileChooser.ExtensionFilter("JPG files (*.jpg)", "*.JPG");
+        FileChooser.ExtensionFilter extFilterPNG =
+                new FileChooser.ExtensionFilter("PNG files (*.png)", "*.PNG");
+
+        //Show open file dialog
+        File file = fileChooser.showOpenDialog(null);
+
+        try{
+            BufferedImage bufferedImage = ImageIO.read(file);
+            champImage = SwingFXUtils.toFXImage(bufferedImage, null);
+        } catch(IOException ex){
+            ex.printStackTrace();
+        }
     }
 }
