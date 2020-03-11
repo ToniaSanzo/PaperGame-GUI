@@ -1,7 +1,10 @@
 package PaperGame.utility;
 
 import PaperGame.entities.Champion;
+import javafx.scene.image.Image;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -119,6 +122,7 @@ public class SaveLoad {
 
     /**
      * Returns a String array of all the champion name's in the champNames.txt file
+     *
      * @return String array of saved Champion names, includes "Create a Champion"
      */
     public static String[] getChampNameArray(){
@@ -139,5 +143,27 @@ public class SaveLoad {
             System.err.println("champNames.txt File Not Found! I would make one for you but just make one for now");
             return null;
         }
+    }
+
+
+    /**
+     * Save a BufferedImage to a persistent memory location
+     *
+     * @param img BufferedImage - the champion's image
+     * @param fileName String - image's filename
+     */
+    public static void writeImageToFile(BufferedImage img, String fileName){
+        try{
+            File file = new File(System.getProperty("user.dir") + "/src/PaperGame/res/Pictures/" + fileName +
+                    ".png");
+            if(file.exists()){
+                file.delete();
+            }
+
+            ImageIO.write(img, "png", file);
+        } catch(IOException ex){
+            ex.printStackTrace();
+        }
+
     }
 }

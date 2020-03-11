@@ -9,29 +9,23 @@ import javafx.animation.Timeline;
 import javafx.application.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.*;
 import javafx.scene.control.*;
-import javafx.scene.control.skin.VirtualFlow;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.image.*;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.*;
 import javafx.util.Duration;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
 
 public class GUI extends Application implements Runnable {
     //----------------- CONSTANTS --------------------------------------------------------------------------------------
@@ -84,7 +78,7 @@ public class GUI extends Application implements Runnable {
     TextField chmpName;
     String nameStr,raceStr,classStr,crtChmpLabelStr;
     Champion currentChamp = null;
-    Image champImage = null;
+    BufferedImage champImage = null;
 
     // Objects used in the Main Champion Page Screen
     Scene plyrMstrScene;
@@ -221,6 +215,7 @@ public class GUI extends Application implements Runnable {
         imageBtn.setOnAction(e -> imageOpt());
         HBox classPanel = new HBox(50, archerBtn, warriorBtn, paladinBtn, mageBtn);
         HBox crtChmpBtnPane = new HBox(50, acceptBtn, imageBtn);
+        crtChmpBtnPane.setAlignment(Pos.CENTER);
         VBox panel4 = new VBox(65,crtChmpLbl, chmpNamePanel, racePanel, classPanel, crtChmpBtnPane);
         panel4.setAlignment(Pos.CENTER);
         classPanel.setAlignment(Pos.CENTER);
@@ -501,7 +496,19 @@ public class GUI extends Application implements Runnable {
             return;
         }
 
-        currentChamp = new Champion(classStr,raceStr,nameStr);
+        if (champImage != null) {
+            currentChamp = new Champion(classStr, raceStr, nameStr);
+            currentChamp.setImagePath(
+                    "file:" + System.getProperty("user.dir") +
+                            "/src/PaperGame/res/Pictures/" + currentChamp.toString() + ".png"
+            );
+            SaveLoad.writeImageToFile(champImage, currentChamp.toString());
+
+        }
+        else {
+            currentChamp = new Champion(classStr, raceStr, nameStr);
+        }
+
         SaveLoad.writeChmpToFile(currentChamp);
 
         createMainChmpScene();
@@ -516,9 +523,20 @@ public class GUI extends Application implements Runnable {
         if(currentChamp == null){ return; }
 
         // Generate the Character info on the left side of the scene
-        plyrMstrChmpImg = new Image("file:" + System.getProperty("user.dir") + "/src/PaperGame/res/Pictures/Eric_K" +
-                "oston.jpg");
+        plyrMstrChmpImg = new Image(currentChamp.getImagePath());
         plyrMstrChmpImgView = new ImageView(plyrMstrChmpImg);
+        plyrMstrChmpImgView.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event){
+                champImage = null;
+                imageOpt();
+                if(champImage != null){
+                    SaveLoad.writeImageToFile(champImage, currentChamp.toString());
+                }
+                createMainChmpScene();
+                event.consume();
+            }
+        });
         plyrMstrChmpImgView.setFitHeight(180);
         plyrMstrChmpImgView.setFitWidth(180);
         plyrMstrChmpImgView.setPreserveRatio(true);
@@ -535,10 +553,13 @@ public class GUI extends Application implements Runnable {
         plyrMstrHPanel2.setAlignment(Pos.CENTER);
         plyrMstrHPanel2.setSpacing(10);
         plyrMstrHPanel2.getChildren().addAll(plyrMstrLvlLbl, plyrMstrGoldLbl);
-        plyrMstrHealthLbl = new Label("Health: " + currentChamp.getCurrentHealth() + "/" + currentChamp.getTotalHealth());
-        plyrMstrExpLbl = new Label("Experience Pts: " + currentChamp.getExperiencePts() + "/" + currentChamp.getLevel() * 7);
+        plyrMstrHealthLbl = new Label("Health: " + currentChamp.getCurrentHealth() + "/" +
+                currentChamp.getTotalHealth());
+        plyrMstrExpLbl = new Label("Experience Pts: " + currentChamp.getExperiencePts() + "/" +
+                currentChamp.getLevel() * 7);
         plyrMstrManaLbl = new Label("Mana: " + currentChamp.getCurrentMana() + "/" + currentChamp.getTotalMana());
-        plyrMstrEneryLbl = new Label("Energy: " + currentChamp.getCurrentEnergy() + "/" + currentChamp.getTotalEnergy());
+        plyrMstrEneryLbl = new Label("Energy: " + currentChamp.getCurrentEnergy() + "/" +
+                currentChamp.getTotalEnergy());
         plyrMstrAgiLbl = new Label("Agility: " + currentChamp.getAgility());
         plyrMstrIntLbl = new Label("Intelligence: " + currentChamp.getIntelligence());
         plyrMstrStrLbl = new Label("Strength: " + currentChamp.getStrength());
@@ -623,7 +644,7 @@ public class GUI extends Application implements Runnable {
 
 
     /**
-     * Browse files for an image file
+     * Browse files for an image file, store this image as a BufferedImage
      * Code from Java-Buddy.blogspot.com
      */
     public void imageOpt(){
@@ -639,8 +660,7 @@ public class GUI extends Application implements Runnable {
         File file = fileChooser.showOpenDialog(null);
 
         try{
-            BufferedImage bufferedImage = ImageIO.read(file);
-            champImage = SwingFXUtils.toFXImage(bufferedImage, null);
+            champImage = ImageIO.read(file);
         } catch(IOException ex){
             ex.printStackTrace();
         }
