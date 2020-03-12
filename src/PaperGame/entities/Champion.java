@@ -88,6 +88,7 @@ public class Champion extends Creature {
             decrementStrength();
         }
 
+        totalInventoryWeight = getStrength() * 5;
         imagePath = "file:" + System.getProperty("user.dir") + "/src/PaperGame/res/Pictures/Eric_Koston.jpg";
     }
 

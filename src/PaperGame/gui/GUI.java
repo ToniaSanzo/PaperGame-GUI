@@ -1,5 +1,6 @@
 package PaperGame.gui;
 
+import PaperGame.entities.Item;
 import PaperGame.networking.UserID;
 import PaperGame.utility.SaveLoad;
 import PaperGame.entities.Champion;
@@ -7,11 +8,14 @@ import PaperGame.utility.ThreadBridge;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.*;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -26,6 +30,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class GUI extends Application implements Runnable {
     //----------------- CONSTANTS --------------------------------------------------------------------------------------
@@ -93,6 +98,13 @@ public class GUI extends Application implements Runnable {
     Menu plyrMstrTradeMenu, plyrMstrInventoryMenu;
     Image plyrMstrChmpImg;
     ImageView plyrMstrChmpImgView;
+
+    // Objects used in the Player-Fluid-Inventory subscene
+    ListView<String> inventoryList;
+    Button invUseBtn, invDetBtn, invRemBtn;
+    Label invWeightLbl;
+    HBox invBtnPane;
+    VBox invPane;
 
 
     //----------------- METHODS ----------------------------------------------------------------------------------------
@@ -509,6 +521,38 @@ public class GUI extends Application implements Runnable {
             currentChamp = new Champion(classStr, raceStr, nameStr);
         }
 
+        Item tempItem;
+        switch(classStr){
+            case ARCHER:
+                tempItem = (Item)SaveLoad.readObjectFromFile(System.getProperty("user.dir") +
+                        "/src/PaperGame/res/ItemsFolder/" + SaveLoad.sanitizeFilename("Wooden Bow & Arrow"));
+                if(tempItem != null) {
+                    currentChamp.addItem(tempItem);
+                }
+                break;
+            case WARRIOR:
+                tempItem = (Item)SaveLoad.readObjectFromFile(System.getProperty("user.dir") +
+                        "/src/PaperGame/res/ItemsFolder/Iron Sword");
+                if(tempItem != null) {
+                    currentChamp.addItem(tempItem);
+                }
+                break;
+            case PALADIN:
+                tempItem = (Item)SaveLoad.readObjectFromFile(System.getProperty("user.dir") +
+                        "/src/PaperGame/res/ItemsFolder/" + SaveLoad.sanitizeFilename("Club & Wooden Shield"));
+                if(tempItem != null) {
+                    currentChamp.addItem(tempItem);
+                }
+                break;
+            case MAGE:
+                tempItem = (Item)SaveLoad.readObjectFromFile(System.getProperty("user.dir") +
+                        "/src/PaperGame/res/ItemsFolder/Basic Elemental Tome");
+                if(tempItem != null) {
+                    currentChamp.addItem(tempItem);
+                }
+                break;
+        }
+
         SaveLoad.writeChmpToFile(currentChamp);
 
         createMainChmpScene();
@@ -612,6 +656,23 @@ public class GUI extends Application implements Runnable {
         plyrMstrVPanel.setPadding(new Insets(10));
         plyrMstrVPanel.setSpacing(8);
 
+        // Set up the Champion Inventory sub-screen
+        inventoryList = new ListView<String>();
+        for(Item tmpItm: currentChamp.getInventory()){
+            inventoryList.getItems().add(tmpItm.getName());
+        }
+        invUseBtn = new Button("Use");
+        invUseBtn.setOnAction(e -> System.out.println("Use Item"));
+        invDetBtn = new Button("Details");
+        invDetBtn.setOnAction(e -> System.out.println("Detail Pressed"));
+        invRemBtn = new Button("Remove");
+        invRemBtn.setOnAction(e -> System.out.println("Remove item"));
+        invWeightLbl = new Label("Inventory Weight: " + currentChamp.getCurrentInventoryWeight() + "/" +
+                currentChamp.getTotalInventoryWeight());
+        invBtnPane = new HBox(65, invUseBtn, invDetBtn, invRemBtn, invWeightLbl);
+        invPane = new VBox(50, inventoryList, invBtnPane);
+        invPane.setAlignment(Pos.CENTER);
+
         // Set up the Champion Master MenuBar
         MenuItem dummyItemA = new MenuItem();
         MenuItem dummyItemB = new MenuItem();
@@ -624,7 +685,7 @@ public class GUI extends Application implements Runnable {
         plyrMstrInventoryMenu.getItems().add(dummyItemB);
         plyrMstrInventoryMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrInventoryMenu.hide());
         plyrMstrInventoryMenu.addEventHandler(Menu.ON_SHOWING, e -> plyrMstrInventoryMenu.fire());
-        plyrMstrInventoryMenu.setOnAction(e -> System.out.println("Inventory clicked"));
+        plyrMstrInventoryMenu.setOnAction(e -> plyrMstrBPanel.setCenter(invPane));
         plyrMstrMenuBar = new MenuBar();
         plyrMstrMenuBar.getMenus().addAll(plyrMstrTradeMenu, plyrMstrInventoryMenu);
 
@@ -640,6 +701,26 @@ public class GUI extends Application implements Runnable {
         stage.setScene(plyrMstrScene);
         stage.setTitle(currentChamp.getName());
         stage.show();
+    }
+
+
+    public void prepInvPane(){
+        // Set up the Champion Inventory sub-screen
+        inventoryList = new ListView<String>();
+        for(Item tmpItm: currentChamp.getInventory()){ inventoryList.getItems().add(tmpItm.getName()); }
+        invUseBtn = new Button("Use");
+        invUseBtn.setOnAction(e -> System.out.println("Use Item"));
+        invDetBtn = new Button("Details");
+        invDetBtn.setOnAction(e -> System.out.println("Detail Pressed"));
+        invRemBtn = new Button("Remove");
+        invRemBtn.setOnAction(e -> System.out.println("Remove item"));
+        invWeightLbl = new Label("Inventory Weight: " + currentChamp.getCurrentInventoryWeight() + "/" +
+                currentChamp.getTotalInventoryWeight());
+        invBtnPane = new HBox(65, invUseBtn, invDetBtn, invRemBtn, invWeightLbl);
+        invBtnPane.setAlignment(Pos.CENTER);
+        invBtnPane.setPadding(new Insets(10));
+        invPane = new VBox(50, inventoryList, invBtnPane);
+        invPane.setAlignment(Pos.CENTER);
     }
 
 

@@ -1,6 +1,7 @@
 package PaperGame.utility;
 
 import PaperGame.entities.Champion;
+import PaperGame.entities.Item;
 import javafx.scene.image.Image;
 
 import javax.imageio.ImageIO;
@@ -21,6 +22,26 @@ public class SaveLoad {
         try {
             FileOutputStream fOut = new FileOutputStream(System.getProperty("user.dir") +"/src/PaperGame/res" +
                     "/UID/myUID");
+            ObjectOutputStream oOut = new ObjectOutputStream(fOut);
+            oOut.writeObject(serObj);
+            oOut.close();
+            fOut.close();
+            System.out.println("Save Successful");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    /**
+     * Serializes a Item and writes it to a .ser file in the ItemFolder directory
+     *
+     * @param itemObj
+     */
+    public static void writeItemToFile(Item itemObj) {
+        try {
+            FileOutputStream fOut = new FileOutputStream(System.getProperty("user.dir") +"/src/PaperGame/res" +
+                    "/ItemsFolder/" + sanitizeFilename(itemObj.getName()));
+            Object serObj = itemObj;
             ObjectOutputStream oOut = new ObjectOutputStream(fOut);
             oOut.writeObject(serObj);
             oOut.close();
@@ -165,5 +186,19 @@ public class SaveLoad {
             ex.printStackTrace();
         }
 
+    }
+
+
+    /**
+     * replace illegal charaters in a filename with "_"
+     * illegal chgracters :
+     *                 : \ / * ? | < >
+     * @param name
+     * @return
+     *
+     * Code from rgagnon.com
+     */
+    public static String sanitizeFilename(String name){
+        return name.replaceAll("[:\\\\/*?|<>]]","_");
     }
 }

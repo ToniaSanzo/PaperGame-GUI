@@ -11,6 +11,7 @@ public class Weapon extends Equipment {
 
     /**
      * Constructor to create a weapon, given all the correct parameters
+     *
      * @param strength the weapons strength stat
      * @param agility the weapons agility stat
      * @param intelligence the weapons intelligence stat
