@@ -1,5 +1,6 @@
 package PaperGame.gui;
 
+import PaperGame.entities.Inventory;
 import PaperGame.entities.Item;
 import PaperGame.networking.UserID;
 import PaperGame.utility.SaveLoad;
@@ -19,20 +20,75 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.*;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.image.*;
 import javafx.scene.text.Font;
 import javafx.stage.*;
+import javafx.util.Callback;
 import javafx.util.Duration;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class GUI extends Application implements Runnable {
+    public static Champion currentChamp = null;
+
+    // List item containing the name of an item and the quantity to trade
+    static class InventoryCell extends ListCell<String>{
+        HBox hBox = new HBox();
+        Label itemNameLbl = new Label("(empty)");
+        Label qtyLbl = new Label("Quantity:");
+        Label currQtyLbl = new Label("/#");
+        Pane hSpacePane = new Pane();
+        TextField textField = new TextField();
+        String lastItem;
+
+        /**
+         * Constructor, initialize the HBox panel
+         */
+        public InventoryCell() {
+            super();
+            hBox.getChildren().addAll(itemNameLbl, hSpacePane, qtyLbl, textField, currQtyLbl);
+            hBox.setHgrow(hSpacePane, Priority.ALWAYS);
+        }
+
+
+        /**
+         * Given a String, create TradeCell object associated with the item the String maps too
+         */
+        @Override
+        protected void updateItem(String item, boolean empty){
+            if(currentChamp == null){ throw new NullPointerException("currentChamp not initialized"); }
+            Inventory inventory = currentChamp.getInventory();
+            super.updateItem(item, empty);
+            setText(null);
+            if(empty) {
+                lastItem = null;
+                setGraphic(null);
+            } else {
+                lastItem = item;
+                if(item != null && inventory != null){
+                    itemNameLbl.setText(item);
+                    currQtyLbl.setText(" / " + inventory.getQuantityList().get(inventory.indexOf(item)));
+                } else { itemNameLbl.setText("<null>"); }
+
+                setGraphic(hBox);
+            }
+        }
+    }
+
     //----------------- CONSTANTS --------------------------------------------------------------------------------------
     public static final String ORC = "Orc", ELF = "Elf", HUMAN = "Human", DWARF = "Dwarf";
     public static final String ARCHER = "Archer", WARRIOR = "Warrior", PALADIN = "Paladin", MAGE = "Mage";
@@ -82,7 +138,6 @@ public class GUI extends Application implements Runnable {
     Label crtChmpLbl,enterChmpName;
     TextField chmpName;
     String nameStr,raceStr,classStr,crtChmpLabelStr;
-    Champion currentChamp = null;
     BufferedImage champImage = null;
 
     // Objects used in the Main Champion Page Screen
@@ -99,12 +154,17 @@ public class GUI extends Application implements Runnable {
     Image plyrMstrChmpImg;
     ImageView plyrMstrChmpImgView;
 
-    // Objects used in the Player-Fluid-Inventory subscene
+    // Objects used in the Player-Fluid-Inventory sub screen
     ListView<String> inventoryList;
     Button invUseBtn, invDetBtn, invRemBtn;
     Label invWeightLbl;
     HBox invBtnPane;
     VBox invPane;
+
+    // Objects used in the DM-Player-Fluid trade sub screen
+    ListView<String> dmPlyrTradeListView;
+    ObservableList<String> dmPlyrTradeObsrvList;
+
 
 
     //----------------- METHODS ----------------------------------------------------------------------------------------
@@ -287,7 +347,7 @@ public class GUI extends Application implements Runnable {
         });
         dmRoomJoinPanel = new VBox(50, dmRoomJoinIPAddr, dmRoomJoinStartUID, dmRoomJoinStart);
         dmRoomJoinPanel.setAlignment(Pos.CENTER);
-        dmRoomJoinScene = new Scene(dmRoomJoinPanel, 1200, 900);
+        dmRoomJoinScene = new Scene(dmRoomJoinPanel, 1200, 750);
         stage.setScene(dmRoomJoinScene);
         stage.setTitle("Join Room");
         stage.show();
@@ -673,6 +733,18 @@ public class GUI extends Application implements Runnable {
         invPane = new VBox(50, inventoryList, invBtnPane);
         invPane.setAlignment(Pos.CENTER);
 
+        // Set up the Champion Trade sub-screen
+        dmPlyrTradeObsrvList = FXCollections.observableArrayList(currentChamp.getInventory().getItemNameList());
+        dmPlyrTradeListView = new ListView<>(dmPlyrTradeObsrvList);
+        dmPlyrTradeListView.setItems(dmPlyrTradeObsrvList);
+        dmPlyrTradeListView.setCellFactory(new Callback<ListView<String>,
+                        ListCell<String>>() {
+            @Override
+            public ListCell<String> call(ListView<String> list) {
+                return new InventoryCell();
+            }
+        });
+
         // Set up the Champion Master MenuBar
         MenuItem dummyItemA = new MenuItem();
         MenuItem dummyItemB = new MenuItem();
@@ -704,6 +776,9 @@ public class GUI extends Application implements Runnable {
     }
 
 
+    /**
+     * Prepare player inventory sub screen
+     */
     public void prepInvPane(){
         // Set up the Champion Inventory sub-screen
         inventoryList = new ListView<String>();

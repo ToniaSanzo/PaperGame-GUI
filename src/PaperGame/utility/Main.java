@@ -35,6 +35,9 @@ public class Main {
     }
 
 
+    /**
+     * Generate the classes starter items
+     */
     public static void generateStarterItems(){
         Weapon woodenBowAndArrow = new Weapon((short)0, (short)1, (short)0, (short)0, 2,
                 "Wooden Bow & Arrow", Item.ROGUE, (short)7);

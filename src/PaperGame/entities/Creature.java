@@ -24,7 +24,7 @@ public class Creature implements Serializable, TransferredObject {
     private short currentEnergy;        // currentEnergy is the amount of energy you currently have
 
     // Creature's items
-    private ArrayList<Item> inventory;  // Items in the creature's possession
+    private Inventory inventory;  // Items in the creature's possession
     private Weapon weapon;              // Weapon the creature uses in combat
 
 
@@ -38,7 +38,7 @@ public class Creature implements Serializable, TransferredObject {
      * @param name Name is the creatures name
      */
     public Creature(short strength,short agility, short intelligence, short fortitude, String name){
-        inventory         = new ArrayList<Item>();
+        inventory         = new Inventory();
         this.strength     = strength;
         this.agility      = agility;
         this.intelligence = intelligence;
@@ -61,7 +61,7 @@ public class Creature implements Serializable, TransferredObject {
      * @param name Name is the creatures name
      */
     public Creature(short strength,short agility, short intelligence, short fortitude, Weapon weapon, String name){
-        inventory         = new ArrayList<Item>();
+        inventory         = new Inventory();
         this.strength     = strength;
         this.agility      = agility;
         this.intelligence = intelligence;
@@ -78,7 +78,7 @@ public class Creature implements Serializable, TransferredObject {
      * Default Constructor sets all the stats equal to one
      */
     public Creature(){
-        inventory         = new ArrayList<Item>();
+        inventory         = new Inventory();
         this.strength     = 0;
         this.agility      = 0;
         this.intelligence = 0;
@@ -161,7 +161,7 @@ public class Creature implements Serializable, TransferredObject {
     /**
      * @return returns the creature's inventory
      */
-    public ArrayList<Item> getInventory() { return inventory; }
+    public Inventory getInventory() { return inventory; }
 
 
     /**
@@ -464,7 +464,6 @@ public class Creature implements Serializable, TransferredObject {
 
         // Champion weapon is updated to the parameter weapon
         setWeapon(weapon);
-        inventory.add(weapon);
     }
 
 
@@ -633,7 +632,7 @@ public class Creature implements Serializable, TransferredObject {
      *
      * @param item The item to be added to the inventory
      */
-    public void addItem(Item item){ inventory.add(item); }
+    public void addItem(Item item){ inventory.addItem(item); }
 
 
     /**
@@ -641,7 +640,16 @@ public class Creature implements Serializable, TransferredObject {
      *
      * @param item The item to be removed from the inventory
      */
-    public void removeItem(Item item){ inventory.remove(item); }
+    public void removeItem(Item item){ inventory.removeItem(item, 1); }
+
+
+    /**
+     * Remove an item from the inventory
+     *
+     * @param item The item to be removed from the inventory
+     * @param quantity The number of items to remove
+     */
+    public void removeItem(Item item, int quantity){ inventory.removeItem(item, quantity); }
 
 
     /**
