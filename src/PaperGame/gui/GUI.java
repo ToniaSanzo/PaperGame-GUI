@@ -43,7 +43,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class GUI extends Application implements Runnable {
-    public static Champion currentChamp = null;
+    public static Champion currentChamp = null;    // The Player's current Champion
+    public static Inventory tradeInventory = null; // Temporary Inventory used in trading
 
     // List item containing the name of an item and the quantity to trade
     static class InventoryCell extends ListCell<String>{
@@ -52,7 +53,7 @@ public class GUI extends Application implements Runnable {
         Label qtyLbl = new Label("Quantity:");
         Label currQtyLbl = new Label("/#");
         Pane hSpacePane = new Pane();
-        TextField textField = new TextField();
+        TextField textField = new TextField("0");
         String lastItem;
 
         /**
@@ -61,6 +62,7 @@ public class GUI extends Application implements Runnable {
         public InventoryCell() {
             super();
             hBox.getChildren().addAll(itemNameLbl, hSpacePane, qtyLbl, textField, currQtyLbl);
+            hBox.setSpacing(5);
             hBox.setHgrow(hSpacePane, Priority.ALWAYS);
         }
 
@@ -82,6 +84,50 @@ public class GUI extends Application implements Runnable {
                 if(item != null && inventory != null){
                     itemNameLbl.setText(item);
                     currQtyLbl.setText(" / " + inventory.getQuantityList().get(inventory.indexOf(item)));
+                } else { itemNameLbl.setText("<null>"); }
+
+                setGraphic(hBox);
+            }
+        }
+    }
+
+    // List item containing the name of an item and the quantity to trade
+    static class TradeCell extends ListCell<String>{
+        HBox hBox = new HBox();
+        Label itemNameLbl = new Label("(empty)");
+        Label qtyLbl = new Label("Quantity: #");
+        Pane hSpacePane = new Pane();
+        String lastItem;
+
+        /**
+         * Constructor, initialize the HBox panel
+         */
+        public TradeCell() {
+            super();
+            hBox.getChildren().addAll(itemNameLbl, hSpacePane, qtyLbl);
+            hBox.setSpacing(5);
+            hBox.setHgrow(hSpacePane, Priority.ALWAYS);
+        }
+
+
+        /**
+         * Given a String, create TradeCell object associated with the item the String maps too
+         */
+        @Override
+        protected void updateItem(String item, boolean empty){
+            if(currentChamp == null){ throw new NullPointerException("currentChamp not initialized"); }
+            if(tradeInventory == null){ return; }
+            Inventory inventory = currentChamp.getInventory();
+            super.updateItem(item, empty);
+            setText(null);
+            if(empty) {
+                lastItem = null;
+                setGraphic(null);
+            } else {
+                lastItem = item;
+                if(item != null && inventory != null){
+                    itemNameLbl.setText(item);
+                    qtyLbl.setText("Quantity: " + tradeInventory.getQuantityList().get(tradeInventory.indexOf(item)));
                 } else { itemNameLbl.setText("<null>"); }
 
                 setGraphic(hBox);
@@ -162,12 +208,17 @@ public class GUI extends Application implements Runnable {
     VBox invPane;
 
     // Objects used in the DM-Player-Fluid trade sub screen
-    ListView<String> dmPlyrTradeListView;
-    ObservableList<String> dmPlyrTradeObsrvList;
-
+    ListView<String> dmPlyrTradeInvLV, dmPlyrTradeOfferingLV, dmPlyrTradeReceiveLV;
+    ObservableList<String> dmPlyrTradeInvOList, dmPlyrTradeOfferingOList, dmPlyrTradeRecieveOList;
+    Label dmPlyrTradeItemLbl, dmPlyrTradeOfferingLbl, dmPlyrTradeReceiveLbl;
+    Button dmPlyrTradeUpdateBtn, dmPlyrTradeAcceptBtn, dmPlyrTradeCancelBtn;
+    VBox dmPlyrTradeInvVBox, dmPlyrTradeOfferingVBox, dmPlyrTradeReceiveVBox, dmPlyrTradeVBox;
+    HBox dmPlyrTradeBtnHBox, dmPlyrLVHBox;
+    BorderPane dmPlyrTradeBPane;
 
 
     //----------------- METHODS ----------------------------------------------------------------------------------------
+
 
     /**
      * When the program runs the main method, the main method launches the GUI used in javaFX
@@ -179,6 +230,7 @@ public class GUI extends Application implements Runnable {
 
     /**
      * Launches the javaFX GUI, essentially the "main" method for the GUI
+     *
      * @param primaryStage The stage that is used to conatain the main part of the GUI
      * @throws Exception Default error checking
      */
@@ -730,20 +782,65 @@ public class GUI extends Application implements Runnable {
         invWeightLbl = new Label("Inventory Weight: " + currentChamp.getCurrentInventoryWeight() + "/" +
                 currentChamp.getTotalInventoryWeight());
         invBtnPane = new HBox(65, invUseBtn, invDetBtn, invRemBtn, invWeightLbl);
+        invBtnPane.setAlignment(Pos.CENTER);
         invPane = new VBox(50, inventoryList, invBtnPane);
         invPane.setAlignment(Pos.CENTER);
+        VBox.setMargin(inventoryList, new Insets(30));
+
 
         // Set up the Champion Trade sub-screen
-        dmPlyrTradeObsrvList = FXCollections.observableArrayList(currentChamp.getInventory().getItemNameList());
-        dmPlyrTradeListView = new ListView<>(dmPlyrTradeObsrvList);
-        dmPlyrTradeListView.setItems(dmPlyrTradeObsrvList);
-        dmPlyrTradeListView.setCellFactory(new Callback<ListView<String>,
+        dmPlyrTradeInvOList = FXCollections.observableArrayList(currentChamp.getInventory().getItemNameList());
+        dmPlyrTradeInvLV = new ListView<>(dmPlyrTradeInvOList);
+        dmPlyrTradeInvLV.setItems(dmPlyrTradeInvOList);
+        dmPlyrTradeInvLV.setCellFactory(new Callback<ListView<String>,
                         ListCell<String>>() {
             @Override
             public ListCell<String> call(ListView<String> list) {
                 return new InventoryCell();
             }
         });
+        dmPlyrTradeOfferingOList = FXCollections.observableArrayList();
+        dmPlyrTradeOfferingLV = new ListView<>(dmPlyrTradeOfferingOList);
+        dmPlyrTradeOfferingLV.setItems(dmPlyrTradeInvOList);
+        dmPlyrTradeOfferingLV.setCellFactory(new Callback<ListView<String>,
+                ListCell<String>>() {
+            @Override
+            public ListCell<String> call(ListView<String> list) {
+                return new TradeCell();
+            }
+        });
+        dmPlyrTradeRecieveOList = FXCollections.observableArrayList();
+        dmPlyrTradeReceiveLV = new ListView<>(dmPlyrTradeRecieveOList);
+        dmPlyrTradeReceiveLV.setItems(dmPlyrTradeInvOList);
+        dmPlyrTradeReceiveLV.setCellFactory(new Callback<ListView<String>,
+                ListCell<String>>() {
+            @Override
+            public ListCell<String> call(ListView<String> list) {
+                return new TradeCell();
+            }
+        });
+        dmPlyrTradeItemLbl = new Label("Choose Items");
+        dmPlyrTradeItemLbl.setFont(Font.font("Cambria", 28));
+        dmPlyrTradeOfferingLbl = new Label("You are Offering");
+        dmPlyrTradeOfferingLbl.setFont(Font.font("Cambria", 28));
+        dmPlyrTradeReceiveLbl = new Label("You are Receiving");
+        dmPlyrTradeReceiveLbl.setFont(Font.font("Cambria", 28));
+        dmPlyrTradeInvVBox = new VBox(20, dmPlyrTradeItemLbl, dmPlyrTradeInvLV);
+        dmPlyrTradeOfferingVBox = new VBox(20, dmPlyrTradeOfferingLbl, dmPlyrTradeOfferingLV);
+        dmPlyrTradeReceiveVBox = new VBox(20, dmPlyrTradeReceiveLbl, dmPlyrTradeReceiveLV);
+        dmPlyrTradeUpdateBtn = new Button("Update Offering");
+        dmPlyrTradeUpdateBtn.setOnAction(e -> System.out.println("Update"));
+        dmPlyrTradeAcceptBtn = new Button("Accept");
+        dmPlyrTradeAcceptBtn.setOnAction(e -> System.out.println("Accept"));
+        dmPlyrTradeCancelBtn = new Button("Cancel");
+        dmPlyrTradeCancelBtn.setOnAction(e -> System.out.println("Cancel"));
+        dmPlyrLVHBox = new HBox(50, dmPlyrTradeInvVBox, dmPlyrTradeOfferingVBox, dmPlyrTradeReceiveVBox);
+        dmPlyrTradeBtnHBox = new HBox(30, dmPlyrTradeUpdateBtn, dmPlyrTradeAcceptBtn, dmPlyrTradeCancelBtn);
+        dmPlyrTradeBtnHBox.setAlignment(Pos.CENTER);
+        dmPlyrTradeVBox = new VBox(40, dmPlyrLVHBox, dmPlyrTradeBtnHBox);
+        dmPlyrTradeVBox.setAlignment(Pos.CENTER);
+        dmPlyrTradeBPane = new BorderPane();
+        dmPlyrTradeBPane.setCenter(dmPlyrTradeVBox);
 
         // Set up the Champion Master MenuBar
         MenuItem dummyItemA = new MenuItem();
@@ -752,7 +849,7 @@ public class GUI extends Application implements Runnable {
         plyrMstrTradeMenu.getItems().add(dummyItemA);
         plyrMstrTradeMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrTradeMenu.hide());
         plyrMstrTradeMenu.addEventHandler(Menu.ON_SHOWING, e -> plyrMstrTradeMenu.fire());
-        plyrMstrTradeMenu.setOnAction( e -> System.out.println("Clicked Trade"));
+        plyrMstrTradeMenu.setOnAction( e -> plyrMstrBPanel.setCenter(dmPlyrTradeBPane));
         plyrMstrInventoryMenu = new Menu("Inventory");
         plyrMstrInventoryMenu.getItems().add(dummyItemB);
         plyrMstrInventoryMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrInventoryMenu.hide());
@@ -767,35 +864,12 @@ public class GUI extends Application implements Runnable {
         plyrMstrBPanel.setTop(plyrMstrMenuBar);
 
         // Init Player Master Scene
-        plyrMstrScene = new Scene(plyrMstrBPanel, 960, 650);
+        plyrMstrScene = new Scene(plyrMstrBPanel, 1070, 650);
 
         // Set scene and show the stage
         stage.setScene(plyrMstrScene);
         stage.setTitle(currentChamp.getName());
         stage.show();
-    }
-
-
-    /**
-     * Prepare player inventory sub screen
-     */
-    public void prepInvPane(){
-        // Set up the Champion Inventory sub-screen
-        inventoryList = new ListView<String>();
-        for(Item tmpItm: currentChamp.getInventory()){ inventoryList.getItems().add(tmpItm.getName()); }
-        invUseBtn = new Button("Use");
-        invUseBtn.setOnAction(e -> System.out.println("Use Item"));
-        invDetBtn = new Button("Details");
-        invDetBtn.setOnAction(e -> System.out.println("Detail Pressed"));
-        invRemBtn = new Button("Remove");
-        invRemBtn.setOnAction(e -> System.out.println("Remove item"));
-        invWeightLbl = new Label("Inventory Weight: " + currentChamp.getCurrentInventoryWeight() + "/" +
-                currentChamp.getTotalInventoryWeight());
-        invBtnPane = new HBox(65, invUseBtn, invDetBtn, invRemBtn, invWeightLbl);
-        invBtnPane.setAlignment(Pos.CENTER);
-        invBtnPane.setPadding(new Insets(10));
-        invPane = new VBox(50, inventoryList, invBtnPane);
-        invPane.setAlignment(Pos.CENTER);
     }
 
 

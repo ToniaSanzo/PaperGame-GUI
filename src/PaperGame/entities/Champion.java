@@ -154,7 +154,7 @@ public class Champion extends Creature {
 
     /**
      * Equips any given piece of armor, and if the champion already has the same type of armor equipped,
-     * this function will replace the already equipped armor piece.
+     * this function will replace the already equipped armor piece
      *
      * @param armor Armor being equipped to the champion
      */
@@ -669,6 +669,7 @@ public class Champion extends Creature {
                 " Current Energy: " + getCurrentEnergy() + "\nTotal Inventory Weight: " + getTotalInventoryWeight() +
                 " Current Inventory Weight: " + getCurrentInventoryWeight() + "\nName: " + getName());
     }
+
 
     /**
      * @return String "Champion"

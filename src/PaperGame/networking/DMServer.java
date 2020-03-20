@@ -7,6 +7,7 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class DMServer implements Runnable
 {
@@ -30,47 +31,40 @@ public class DMServer implements Runnable
     private static final int WINDOW_SIZE = 4;    // Window size for Sliding Window Protocol
     private static final int PAYLOAD     = 503;  // Size of the Data payload per packet
 
+
+    /**
+     * DMServer driver method, this is executed when a DMServer is started
+     */
     public void run()
     {
         try {
             ArrayList<UserID> userIDs = new ArrayList<UserID>();
             UserID uID;
 
-
-            // Objects created to send to the Client
-            /*CombatMap cMap = new CombatMap(3, 5, "TEST_1394$");
-
-            Weapon wpn = new Weapon((short) 3, (short) 3, (short) 3, (short) 3, 30,
-                    "Testing Great$word", Item.KNIGHT, (short) 1);
-            Consumable cnsm = new Consumable("Everything's Zero");
-            Armor armr = new Armor((short) 1, (short) 2, (short) 3, (short) 4, 30, "@rm0r_9494",
-                    Armor.PANTS);
-            Champion chmp = new Champion("Archer", "Elf", "$en$3i_T3$T");
-            Creature crtr = new Creature();
-            Inventory inv = new Inventory();
-            inv.addItem(cnsm, armr, wpn);*/
-
-            openSocket(300);      // Open the server socket
+            // Open the server socket
+            openSocket(300);
 
             // While User's are joining the DM's game
             while(!ThreadBridge.gameStarted()){
+
+                // Terminate, if GUI's closed
+                if(!ThreadBridge.isGuiOn()){
+                    closeSocket();
+                    return;
+                }
+
+                // Listen for a client to join
                 try { uID = clientJoin(); } catch (SocketTimeoutException ex){ uID = null; }
+
                 if(uID != null){
-                    userIDs.add(uID);     // Add UserIDs to the Server's UserID list
+                    // Add UserIDs to the Server's UserID list
+                    userIDs.add(uID);
                     // send the userID's name to the GUI
                     ThreadBridge.pushUser(uID.getName());
                 }
             }
 
-            //userID = clientJoin();           // Let the client join the server
-            /*writeObject(userIDs.get(0), cMap);  // Write Combat Map to client
-            writeObject(userIDs.get(0), wpn);   // Write Weapon to client
-            writeObject(userIDs.get(0), cnsm);  // Write Consumable to client
-            writeObject(userIDs.get(0), armr);  // Write Armor to client
-            writeObject(userIDs.get(0), chmp);  // Write Champion to client
-            writeObject(userIDs.get(0), crtr);  // Write Creature to client
-            writeObject(userIDs.get(0), inv);   // Write Inventory to client
-            closeSocket();                      // Close the server socket*/
+            closeSocket(); // Close server socket
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -912,6 +906,7 @@ public class DMServer implements Runnable
             }
         }
     }
+
 
     /**
      * Print each element within a byte array

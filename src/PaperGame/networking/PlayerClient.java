@@ -47,13 +47,14 @@ public class PlayerClient implements Runnable
             ThreadBridge.setJoinFail(false);
             ThreadBridge.setIPFlag(false);
             while (!ThreadBridge.checkIP()) {
-                // If the GUI is off terminate yourself
+
+                // Terminate, if GUI's closed
                 if (!ThreadBridge.isGuiOn()) {
-                    Thread.currentThread().interrupt();
+                    closeSocket();
                     return;
                 }
 
-                // Sleep for a 1/3 of a second, than do the checks again
+                // Sleep for a 1/3 of a second, than check again
                 try { Thread.sleep(333); } catch (InterruptedException ex) { ex.printStackTrace(); }
             }
 
@@ -74,15 +75,6 @@ public class PlayerClient implements Runnable
             ThreadBridge.setAttemptedPartyJoin(true);
             ThreadBridge.setJoinFail(false);
             break;
-        }
-
-
-        for(int i = 0; i < 7; i++){
-            try {
-                TransferredObject temp = listen();
-            } catch( Exception e){
-                e.printStackTrace();
-            }
         }
 
         closeSocket();

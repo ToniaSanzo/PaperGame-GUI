@@ -74,6 +74,26 @@ public class Inventory implements Serializable, TransferredObject, Iterable<Item
 
 
     /**
+     * Add specified number of a single item to Inventory
+     *
+     * @param item item added
+     * @param quantity quantity added
+     */
+    public void addItem(Item item, int quantity){
+
+        if(itemList.contains(item)){
+            // Increase the quantity of an item
+            quantityList.set(itemList.indexOf(item), quantityList.get(itemList.indexOf(item)) + quantity);
+        } else {
+            // Add a new item, set the quantity of the item to the parameter "quantity"
+            itemList.add(item);
+            itemNameList.add(item.getName());
+            quantityList.add(quantity);
+        }
+    }
+
+
+    /**
      * Method to remove an item by a specified quantity
      *
      * @param item - Item being removed
