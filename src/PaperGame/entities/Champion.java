@@ -372,6 +372,36 @@ public class Champion extends Creature {
 
 
     /**
+     * Given a string that is a character stat will simulate rolling a d4, and adding the stat modifier
+     * on top of that roll.
+     *
+     * @param checkType A String that is one of the champion stats(e.g "Agility")
+     * @return returns a random integer between 1-4 with the stat modifier added on top of it
+     */
+    public int skillCheckd4(String checkType){
+        int skillCheck = -1;
+        switch(checkType){
+            case "Strength":
+                skillCheck = ((int)(Math.random() * 4) + 1 + getStrength());
+                break;
+            case "Agility":
+                skillCheck = ((int)(Math.random() * 4) + 1 + getAgility());
+                break;
+            case "Intelligence":
+                skillCheck = ((int)(Math.random() * 4) + 1 + getIntelligence());
+                break;
+            case "Fortitude":
+                skillCheck = ((int)(Math.random() * 4) + 1 + getFortitude());
+                break;
+            default:
+                System.out.println("Invalid Skill Check, Parameter not a champion stat");
+                break;
+        }
+        return skillCheck;
+    }
+
+
+    /**
      * Given a string that is a character stat will simulate rolling a d12, and adding the stat modifier
      * on top of that roll.
      *

@@ -46,6 +46,7 @@ public class GUI extends Application implements Runnable {
     public static Champion currentChamp = null;    // The Player's current Champion
     public static Inventory tradeInventory = null; // Temporary Inventory used in trading
 
+
     // List item containing the name of an item and the quantity to trade
     static class InventoryCell extends ListCell<String>{
         HBox hBox = new HBox();
@@ -91,7 +92,8 @@ public class GUI extends Application implements Runnable {
         }
     }
 
-    // List item containing the name of an item and the quantity to trade
+
+    // List item containing the name of an item and the quantity being offered or received
     static class TradeCell extends ListCell<String>{
         HBox hBox = new HBox();
         Label itemNameLbl = new Label("(empty)");
@@ -135,10 +137,16 @@ public class GUI extends Application implements Runnable {
         }
     }
 
+
     //----------------- CONSTANTS --------------------------------------------------------------------------------------
-    public static final String ORC = "Orc", ELF = "Elf", HUMAN = "Human", DWARF = "Dwarf";
-    public static final String ARCHER = "Archer", WARRIOR = "Warrior", PALADIN = "Paladin", MAGE = "Mage";
+    public static final String ORC = "Orc", ELF = "Elf", HUMAN = "Human", DWARF = "Dwarf",
+            ARCHER = "Archer", WARRIOR = "Warrior", PALADIN = "Paladin", MAGE = "Mage",
+            D4 = "D4", D6 = "D6", D12 = "D12", D20 = "D20",
+            STRENGTH = "Strength", AGILITY = "Agility", INTELLIGENCE = "Intelligence", FORTITUDE = "Fortitude";
+
+
     //----------------- VARIABLES --------------------------------------------------------------------------------------
+    // Main JavaFX stage
     Stage stage;
 
     // Objects used in the CreateUID Scene
@@ -163,7 +171,6 @@ public class GUI extends Application implements Runnable {
     Timeline playerJoining;
     boolean timelineRunning = false;
 
-
     // Player-StartUp_Screen objects
     Scene plyrStartUpScene;
     Label plyrStartUpWelcomeLbl, plyrStartUpSlctChmpLbl, plyrStartIpLbl;
@@ -172,7 +179,6 @@ public class GUI extends Application implements Runnable {
     TextField ipAddrTxtField;
     Button plyrStartUpBtn;
     VBox plyrStartUpPanel;
-
 
     // Objects used in the Create a Champion Scene
     Scene crtChmpScene;
@@ -183,7 +189,7 @@ public class GUI extends Application implements Runnable {
     Tooltip archerTT, warriorTT, mageTT, paladinTT;
     Label crtChmpLbl,enterChmpName;
     TextField chmpName;
-    String nameStr,raceStr,classStr,crtChmpLabelStr;
+    String nameStr, raceStr, classStr, crtChmpLabelStr;
     BufferedImage champImage = null;
 
     // Objects used in the Main Champion Page Screen
@@ -196,7 +202,7 @@ public class GUI extends Application implements Runnable {
             plyrMstrHeadLbl, plyrMstrChestLbl, plyrMstrPantsLbl, plyrMstrGlovesLbl, plyrMstrBootsLbl, plyrMstrLvlLbl,
             plyrMstrHealthLbl, plyrMstrManaLbl, plyrMstrJewelryLbl;
     MenuBar plyrMstrMenuBar;
-    Menu plyrMstrTradeMenu, plyrMstrInventoryMenu;
+    Menu plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrSCMenu;
     Image plyrMstrChmpImg;
     ImageView plyrMstrChmpImgView;
 
@@ -216,10 +222,16 @@ public class GUI extends Application implements Runnable {
     HBox dmPlyrTradeBtnHBox, dmPlyrLVHBox;
     BorderPane dmPlyrTradeBPane;
 
+    // Objects used in the Player-Fluid skill check sub screen
+    Label plyrSCDiceLbl, plyrSCSkillLbl, plyrSCOutputLbl;
+    Button plyrSCD4Btn, plyrSCD6Btn, plyrSCD12Btn, plyrSCD20Btn, plyrSCIntBtn, plyrSCAgiBtn, plyrSCStrBtn, plyrSCFrtBtn,
+            plyrSCCheckBtn;
+    String skillCheckDice, skillCheckStat, skillCheckOutput;
+    VBox plyrSCDiceVB, plyrSCSkillVB, plyrSCVB;
+    HBox plyrSCVBHB, plyrSCOutputHB;
+
 
     //----------------- METHODS ----------------------------------------------------------------------------------------
-
-
     /**
      * When the program runs the main method, the main method launches the GUI used in javaFX
      */
@@ -842,9 +854,53 @@ public class GUI extends Application implements Runnable {
         dmPlyrTradeBPane = new BorderPane();
         dmPlyrTradeBPane.setCenter(dmPlyrTradeVBox);
 
+        // Set up the Player-Fluid skill check sub screen
+        plyrSCDiceLbl = new Label("Dice");
+        plyrSCDiceLbl.setFont(Font.font("Cambria", 28));
+        plyrSCSkillLbl = new Label("Skill");
+        plyrSCSkillLbl.setFont(Font.font("Cambria", 28));
+        plyrSCD4Btn = new Button("D4");
+        plyrSCD4Btn.setStyle("-fx-background-color: #808080");
+        plyrSCD4Btn.setOnAction(e -> skillCheckDiceSelection(D4));
+        plyrSCD6Btn = new Button("D6");
+        plyrSCD6Btn.setStyle("-fx-background-color: #808080");
+        plyrSCD6Btn.setOnAction(e -> skillCheckDiceSelection(D6));
+        plyrSCD12Btn = new Button("D12");
+        plyrSCD12Btn.setStyle("-fx-background-color: #808080");
+        plyrSCD12Btn.setOnAction(e -> skillCheckDiceSelection(D12));
+        plyrSCD20Btn = new Button("D20");
+        plyrSCD20Btn.setStyle("-fx-background-color: #808080");
+        plyrSCD20Btn.setOnAction(e -> skillCheckDiceSelection(D20));
+        plyrSCAgiBtn = new Button("Agility");
+        plyrSCAgiBtn.setStyle("-fx-background-color: #808080");
+        plyrSCAgiBtn.setOnAction(e -> skillCheckStatSelection(AGILITY));
+        plyrSCStrBtn = new Button("Strength");
+        plyrSCStrBtn.setStyle("-fx-background-color: #808080");
+        plyrSCStrBtn.setOnAction(e -> skillCheckStatSelection(STRENGTH));
+        plyrSCIntBtn = new Button("Intelligence");
+        plyrSCIntBtn.setStyle("-fx-background-color: #808080");
+        plyrSCIntBtn.setOnAction(e -> skillCheckStatSelection(INTELLIGENCE));
+        plyrSCFrtBtn = new Button("Fortitude");
+        plyrSCFrtBtn.setStyle("-fx-background-color: #808080");
+        plyrSCFrtBtn.setOnAction(e -> skillCheckStatSelection(FORTITUDE));
+        plyrSCOutputLbl = new Label();
+        plyrSCCheckBtn = new Button("Check");
+        plyrSCCheckBtn.setStyle("-fx-background-color: #808080");
+        plyrSCCheckBtn.setOnAction(e -> processSkillCheck());
+        plyrSCDiceVB = new VBox(30, plyrSCDiceLbl, plyrSCD4Btn,plyrSCD6Btn, plyrSCD12Btn, plyrSCD20Btn);
+        plyrSCDiceVB.setAlignment(Pos.CENTER);
+        plyrSCSkillVB = new VBox(30, plyrSCSkillLbl, plyrSCAgiBtn, plyrSCStrBtn, plyrSCIntBtn, plyrSCFrtBtn);
+        plyrSCSkillVB.setAlignment(Pos.CENTER);
+        plyrSCVBHB = new HBox(140, plyrSCDiceVB, plyrSCSkillVB);
+        plyrSCVBHB.setAlignment(Pos.CENTER);
+        plyrSCOutputHB = new HBox(70, plyrSCCheckBtn, plyrSCOutputLbl);
+        plyrSCOutputHB.setAlignment(Pos.CENTER);
+        plyrSCVB = new VBox(40, plyrSCVBHB, plyrSCOutputHB);
+
         // Set up the Champion Master MenuBar
         MenuItem dummyItemA = new MenuItem();
         MenuItem dummyItemB = new MenuItem();
+        MenuItem dummyItemC = new MenuItem();
         plyrMstrTradeMenu = new Menu("Trade");
         plyrMstrTradeMenu.getItems().add(dummyItemA);
         plyrMstrTradeMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrTradeMenu.hide());
@@ -855,8 +911,13 @@ public class GUI extends Application implements Runnable {
         plyrMstrInventoryMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrInventoryMenu.hide());
         plyrMstrInventoryMenu.addEventHandler(Menu.ON_SHOWING, e -> plyrMstrInventoryMenu.fire());
         plyrMstrInventoryMenu.setOnAction(e -> plyrMstrBPanel.setCenter(invPane));
+        plyrMstrSCMenu = new Menu("Skill Check");
+        plyrMstrSCMenu.getItems().add(dummyItemC);
+        plyrMstrSCMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrSCMenu.hide());
+        plyrMstrSCMenu.addEventHandler(Menu.ON_SHOWING, e -> plyrMstrSCMenu.fire());
+        plyrMstrSCMenu.setOnAction( e -> plyrMstrBPanel.setCenter(plyrSCVB));
         plyrMstrMenuBar = new MenuBar();
-        plyrMstrMenuBar.getMenus().addAll(plyrMstrTradeMenu, plyrMstrInventoryMenu);
+        plyrMstrMenuBar.getMenus().addAll(plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrSCMenu);
 
         // Set up the Champion Master panel
         plyrMstrBPanel = new BorderPane();
@@ -870,6 +931,110 @@ public class GUI extends Application implements Runnable {
         stage.setScene(plyrMstrScene);
         stage.setTitle(currentChamp.getName());
         stage.show();
+    }
+
+
+    /**
+     * When the user clicks a skill check stat, highlight the skill check stat and update the skill check output
+     *
+     * @param stat Stat the user selected
+     */
+    public void skillCheckStatSelection(String stat){
+        switch(stat){
+            case AGILITY:
+                skillCheckStat = AGILITY;
+                plyrSCAgiBtn.setStyle("-fx-background-color: #bff7bc");
+                plyrSCStrBtn.setStyle("-fx-background-color: #808080");
+                plyrSCFrtBtn.setStyle("-fx-background-color: #808080");
+                plyrSCIntBtn.setStyle("-fx-background-color: #808080");
+                break;
+            case STRENGTH:
+                skillCheckStat = STRENGTH;
+                plyrSCAgiBtn.setStyle("-fx-background-color: #808080");
+                plyrSCStrBtn.setStyle("-fx-background-color: #bff7bc");
+                plyrSCFrtBtn.setStyle("-fx-background-color: #808080");
+                plyrSCIntBtn.setStyle("-fx-background-color: #808080");
+                break;
+            case INTELLIGENCE:
+                skillCheckStat = INTELLIGENCE;
+                plyrSCAgiBtn.setStyle("-fx-background-color: #808080");
+                plyrSCStrBtn.setStyle("-fx-background-color: #808080");
+                plyrSCFrtBtn.setStyle("-fx-background-color: #808080");
+                plyrSCIntBtn.setStyle("-fx-background-color: #bff7bc");
+                break;
+            case FORTITUDE:
+                skillCheckStat = FORTITUDE;
+                plyrSCAgiBtn.setStyle("-fx-background-color: #808080");
+                plyrSCStrBtn.setStyle("-fx-background-color: #808080");
+                plyrSCFrtBtn.setStyle("-fx-background-color: #bff7bc");
+                plyrSCIntBtn.setStyle("-fx-background-color: #808080");
+                break;
+        }
+    }
+
+
+    /**
+     * When the user clicks a skill check die, highlight the skill check die and update the skill check output
+     *
+     * @param die user selected die
+     */
+    public void skillCheckDiceSelection(String die){
+        switch(die){
+            case D4:
+                skillCheckDice = D4;
+                plyrSCD4Btn.setStyle("-fx-background-color: #bff7bc");
+                plyrSCD6Btn.setStyle("-fx-background-color: #808080");
+                plyrSCD12Btn.setStyle("-fx-background-color: #808080");
+                plyrSCD20Btn.setStyle("-fx-background-color: #808080");
+                break;
+            case D6:
+                skillCheckDice = D6;
+                plyrSCD6Btn.setStyle("-fx-background-color: #bff7bc");
+                plyrSCD4Btn.setStyle("-fx-background-color: #808080");
+                plyrSCD12Btn.setStyle("-fx-background-color: #808080");
+                plyrSCD20Btn.setStyle("-fx-background-color: #808080");
+                break;
+            case D12:
+                skillCheckDice = D12;
+                plyrSCD12Btn.setStyle("-fx-background-color: #bff7bc");
+                plyrSCD4Btn.setStyle("-fx-background-color: #808080");
+                plyrSCD6Btn.setStyle("-fx-background-color: #808080");
+                plyrSCD20Btn.setStyle("-fx-background-color: #808080");
+                break;
+            case D20:
+                skillCheckDice = D20;
+                plyrSCD20Btn.setStyle("-fx-background-color: #bff7bc");
+                plyrSCD4Btn.setStyle("-fx-background-color: #808080");
+                plyrSCD12Btn.setStyle("-fx-background-color: #808080");
+                plyrSCD6Btn.setStyle("-fx-background-color: #808080");
+                break;
+        }
+    }
+
+
+    /**
+     * Process skill check
+     */
+    public void processSkillCheck(){
+        String output = "Choose dice and stat";
+        if(skillCheckStat != null && skillCheckDice != null){
+            switch(skillCheckDice){
+                case D4:
+                    output = String.valueOf(currentChamp.skillCheckd4(skillCheckStat));
+                    break;
+                case D6:
+                    output = String.valueOf(currentChamp.skillCheckd6(skillCheckStat));
+                    break;
+                case D12:
+                    output = String.valueOf(currentChamp.skillCheckd12(skillCheckStat));
+                    break;
+                case D20:
+                    output = String.valueOf(currentChamp.skillCheckd20(skillCheckStat));
+                    break;
+            }
+        }
+        plyrSCOutputLbl.setText(output);
+        plyrSCOutputLbl.setFont(Font.font("Cambria", 28));
     }
 
 
