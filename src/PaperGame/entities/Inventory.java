@@ -39,7 +39,6 @@ public class Inventory implements Serializable, TransferredObject, Iterable<Item
     private ArrayList<Item> itemList;        // Collection of items in the inventory
     private ArrayList<String> itemNameList;  // Collection of items in the inventory
     private ArrayList<Integer> quantityList; // Quantity of each item in the inventory
-    private int count;                       // Used for iterating through
 
     /**
      * Constructor Method, initializes the Map collection for use
@@ -280,6 +279,16 @@ public class Inventory implements Serializable, TransferredObject, Iterable<Item
 
         // Return Inventory contained within the byte array
         return (Inventory)object;
+    }
+
+
+    /**
+     * Clear the content in an Inventory
+     */
+    public void clear(){
+        itemList.clear();
+        itemNameList.clear();
+        quantityList.clear();
     }
 
 

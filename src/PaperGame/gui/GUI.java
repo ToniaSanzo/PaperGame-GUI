@@ -43,8 +43,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class GUI extends Application implements Runnable {
-    public static Champion currentChamp = null;    // The Player's current Champion
-    public static Inventory tradeInventory = null; // Temporary Inventory used in trading
+    public static Champion currentChamp = null;       // The Player's current Champion
+    public static Inventory offerInventory = null;    // Items being offered in trade
+    public static Inventory receiveInventory = null;  // Items being received in trade
 
 
     // List item containing the name of an item and the quantity to trade
@@ -52,10 +53,11 @@ public class GUI extends Application implements Runnable {
         HBox hBox = new HBox();
         Label itemNameLbl = new Label("(empty)");
         Label qtyLbl = new Label("Quantity:");
-        Label currQtyLbl = new Label("/#");
+        Label currQtyLbl = new Label(" / #");
         Pane hSpacePane = new Pane();
         TextField textField = new TextField("0");
         String lastItem;
+
 
         /**
          * Constructor, initialize the HBox panel
@@ -90,21 +92,55 @@ public class GUI extends Application implements Runnable {
                 setGraphic(hBox);
             }
         }
+
+
+        /**
+         * Return quantity of a Item in a InventoryCell TextField
+         *
+         * @return Non-negative integer
+         */
+        public int getQuantity(){
+            try {
+                int rtnVal = Integer.parseInt(textField.getText());
+                int maxVal = Integer.parseInt(currQtyLbl.getText().substring(3));
+
+                if(rtnVal < 0){
+                    rtnVal = 0;
+                }
+
+                if(rtnVal > maxVal){
+                    rtnVal = maxVal;
+                }
+
+                return rtnVal;
+            } catch (NumberFormatException ex){
+                return 0;
+            }
+        }
+
+
+        /**
+         * Return the Item's name
+         *
+         * @return String item name
+         */
+        public String getItemName(){ return itemNameLbl.getText(); }
     }
 
 
     // List item containing the name of an item and the quantity being offered or received
-    static class TradeCell extends ListCell<String>{
+    static class OfferCell extends ListCell<String>{
         HBox hBox = new HBox();
         Label itemNameLbl = new Label("(empty)");
         Label qtyLbl = new Label("Quantity: #");
         Pane hSpacePane = new Pane();
         String lastItem;
 
+
         /**
          * Constructor, initialize the HBox panel
          */
-        public TradeCell() {
+        public OfferCell() {
             super();
             hBox.getChildren().addAll(itemNameLbl, hSpacePane, qtyLbl);
             hBox.setSpacing(5);
@@ -118,7 +154,7 @@ public class GUI extends Application implements Runnable {
         @Override
         protected void updateItem(String item, boolean empty){
             if(currentChamp == null){ throw new NullPointerException("currentChamp not initialized"); }
-            if(tradeInventory == null){ return; }
+            if(offerInventory == null){ return; }
             Inventory inventory = currentChamp.getInventory();
             super.updateItem(item, empty);
             setText(null);
@@ -129,7 +165,54 @@ public class GUI extends Application implements Runnable {
                 lastItem = item;
                 if(item != null && inventory != null){
                     itemNameLbl.setText(item);
-                    qtyLbl.setText("Quantity: " + tradeInventory.getQuantityList().get(tradeInventory.indexOf(item)));
+                    qtyLbl.setText("Quantity: " + offerInventory.getQuantityList().get(offerInventory.indexOf(item)));
+                } else { itemNameLbl.setText("<null>"); }
+
+                setGraphic(hBox);
+            }
+        }
+    }
+
+
+    // List item containing the name of an item and the quantity being offered or received
+    static class ReceiveCell extends ListCell<String>{
+        HBox hBox = new HBox();
+        Label itemNameLbl = new Label("(empty)");
+        Label qtyLbl = new Label("Quantity: #");
+        Pane hSpacePane = new Pane();
+        String lastItem;
+
+
+        /**
+         * Constructor, initialize the HBox panel
+         */
+        public ReceiveCell() {
+            super();
+            hBox.getChildren().addAll(itemNameLbl, hSpacePane, qtyLbl);
+            hBox.setSpacing(5);
+            hBox.setHgrow(hSpacePane, Priority.ALWAYS);
+        }
+
+
+        /**
+         * Given a String, create TradeCell object associated with the item the String maps too
+         */
+        @Override
+        protected void updateItem(String item, boolean empty){
+            if(currentChamp == null){ throw new NullPointerException("currentChamp not initialized"); }
+            if(receiveInventory == null){ return; }
+            Inventory inventory = currentChamp.getInventory();
+            super.updateItem(item, empty);
+            setText(null);
+            if(empty) {
+                lastItem = null;
+                setGraphic(null);
+            } else {
+                lastItem = item;
+                if(item != null && inventory != null){
+                    itemNameLbl.setText(item);
+                    qtyLbl.setText("Quantity: "
+                            + receiveInventory.getQuantityList().get(receiveInventory.indexOf(item)));
                 } else { itemNameLbl.setText("<null>"); }
 
                 setGraphic(hBox);
@@ -818,7 +901,7 @@ public class GUI extends Application implements Runnable {
                 ListCell<String>>() {
             @Override
             public ListCell<String> call(ListView<String> list) {
-                return new TradeCell();
+                return new OfferCell();
             }
         });
         dmPlyrTradeRecieveOList = FXCollections.observableArrayList();
@@ -828,7 +911,7 @@ public class GUI extends Application implements Runnable {
                 ListCell<String>>() {
             @Override
             public ListCell<String> call(ListView<String> list) {
-                return new TradeCell();
+                return new ReceiveCell();
             }
         });
         dmPlyrTradeItemLbl = new Label("Choose Items");
@@ -841,7 +924,7 @@ public class GUI extends Application implements Runnable {
         dmPlyrTradeOfferingVBox = new VBox(20, dmPlyrTradeOfferingLbl, dmPlyrTradeOfferingLV);
         dmPlyrTradeReceiveVBox = new VBox(20, dmPlyrTradeReceiveLbl, dmPlyrTradeReceiveLV);
         dmPlyrTradeUpdateBtn = new Button("Update Offering");
-        dmPlyrTradeUpdateBtn.setOnAction(e -> System.out.println("Update"));
+        dmPlyrTradeUpdateBtn.setOnAction(e -> updateOffering());
         dmPlyrTradeAcceptBtn = new Button("Accept");
         dmPlyrTradeAcceptBtn.setOnAction(e -> System.out.println("Accept"));
         dmPlyrTradeCancelBtn = new Button("Cancel");
@@ -1035,6 +1118,37 @@ public class GUI extends Application implements Runnable {
         }
         plyrSCOutputLbl.setText(output);
         plyrSCOutputLbl.setFont(Font.font("Cambria", 28));
+    }
+
+
+    /**
+     * Update what the Dungeon Master or Player is offering in the trade subscreen
+     */
+    public void updateOffering(){
+        if(offerInventory != null){
+            offerInventory.clear();
+        } else{
+            offerInventory = new Inventory();
+        }
+
+        dmPlyrTradeOfferingOList.clear();
+        Object [] cells = dmPlyrTradeInvLV.lookupAll(".cell").toArray();
+        for(Object o: cells){
+            InventoryCell tmp = (InventoryCell)o;
+            if(tmp.getQuantity() != 0) {
+                offerInventory.addItem(
+                        currentChamp.getInventory().get(currentChamp.getInventory().indexOf(tmp.getItemName())),
+                        tmp.getQuantity()
+                );
+                dmPlyrTradeOfferingOList.add(tmp.getItemName());
+                dmPlyrTradeOfferingLV.fireEvent(
+                        new ListView.EditEvent<>(
+                                dmPlyrTradeOfferingLV, ListView.editCommitEvent(), tmp.getItemName(),
+                                offerInventory.indexOf(tmp.getItemName())
+                                )
+                );
+            }
+        }
     }
 
 
