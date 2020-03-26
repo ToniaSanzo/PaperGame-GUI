@@ -224,7 +224,7 @@ public class Inventory implements Serializable, TransferredObject, Iterable<Item
 
 
     /**
-     * Convert Inventory to a byte array
+     * Convert Inventory to byte array
      *
      * @param inventory Inventory that will be converted into a byte array
      * @return Returns the byte array of the converted Inventory
