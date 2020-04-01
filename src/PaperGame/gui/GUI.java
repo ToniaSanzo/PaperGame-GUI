@@ -166,7 +166,10 @@ public class GUI extends Application implements Runnable {
                 if(item != null && inventory != null){
                     itemNameLbl.setText(item);
                     qtyLbl.setText("Quantity: " + offerInventory.getQuantityList().get(offerInventory.indexOf(item)));
-                } else { itemNameLbl.setText("<null>"); }
+                } else {
+                    itemNameLbl.setText("<null>");
+                    setGraphic(null);
+                }
 
                 setGraphic(hBox);
             }
@@ -1132,6 +1135,7 @@ public class GUI extends Application implements Runnable {
         }
 
         dmPlyrTradeOfferingOList.clear();
+        dmPlyrTradeOfferingLV.setItems(dmPlyrTradeOfferingOList);
         Object [] cells = dmPlyrTradeInvLV.lookupAll(".cell").toArray();
         for(Object o: cells){
             InventoryCell tmp = (InventoryCell)o;
