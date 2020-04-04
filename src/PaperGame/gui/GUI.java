@@ -9,14 +9,11 @@ import PaperGame.utility.ThreadBridge;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.*;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.*;
 import javafx.scene.control.*;
@@ -36,11 +33,9 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class GUI extends Application implements Runnable {
     public static Champion currentChamp = null;       // The Player's current Champion
@@ -454,6 +449,7 @@ public class GUI extends Application implements Runnable {
         }
     }
 
+
     /**
      * Initial DM or Player Screen
      */
@@ -466,6 +462,7 @@ public class GUI extends Application implements Runnable {
         });
         stage.show();
     }
+
 
     /**
      * Method called when the user chooses the Dungeon Master button, in the Dungeon Master or Player scene
@@ -509,7 +506,6 @@ public class GUI extends Application implements Runnable {
     }
 
 
-
     /**
      * Method called when the user chooses the Player button, in the Dungeon Master or Player scene
      */
@@ -529,6 +525,7 @@ public class GUI extends Application implements Runnable {
         stage.show();
     }
 
+
     /**
      * Method called when the user chooses the Create a Character button, in the Load Character scene
      */
@@ -537,6 +534,7 @@ public class GUI extends Application implements Runnable {
         stage.setTitle("Create a Champion");
         stage.show();
     }
+
 
     /**
      * Displays a tiny User Interface that prompts the user to confirm exiting the program
@@ -549,6 +547,7 @@ public class GUI extends Application implements Runnable {
             if(timelineRunning){ playerJoining.stop(); }
         }
     }
+
 
     /**
      * Sets the champion race while creating a champion in the create a champion scene
@@ -1128,14 +1127,18 @@ public class GUI extends Application implements Runnable {
      * Update what the Dungeon Master or Player is offering in the trade subscreen
      */
     public void updateOffering(){
+        // Clear or initialize the offerInventory
         if(offerInventory != null){
             offerInventory.clear();
         } else{
             offerInventory = new Inventory();
         }
 
+        // Clear the Offering ListView
         dmPlyrTradeOfferingOList.clear();
         dmPlyrTradeOfferingLV.setItems(dmPlyrTradeOfferingOList);
+
+        // Determine what the user wants to offer, update the offerInventory and Offering ListView
         Object [] cells = dmPlyrTradeInvLV.lookupAll(".cell").toArray();
         for(Object o: cells){
             InventoryCell tmp = (InventoryCell)o;
@@ -1153,6 +1156,9 @@ public class GUI extends Application implements Runnable {
                 );
             }
         }
+
+        // Send the offerInventory to the ThreadBridge so the network know's what to send to the server
+        ThreadBridge.setOfferInventory(offerInventory);
     }
 
 

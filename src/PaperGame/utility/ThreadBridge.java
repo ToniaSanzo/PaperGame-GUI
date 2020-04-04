@@ -1,5 +1,7 @@
 package PaperGame.utility;
 
+import PaperGame.entities.Inventory;
+
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -12,20 +14,30 @@ public class ThreadBridge {
     private final String CONSUMABLE = "Consumable", WEAPON = "Weapon", ARMOR ="Armor", COMBAT_MAP = "Combat Map",
             CREATURE = "Creature", CHAMPION = "Champion", INVENTORY = "Inventory";
 
+    // Threads
     private Thread gui;
     private Thread server;
     private Thread client;
-    private static boolean uidFlag            = false;          // Sets if myUID has not been set yet
-    private static boolean serverFlag         = false;          // Sets when User chooses DM option
-    private static boolean clientFlag         = false;          // Sets when User chooses Player option
-    private static boolean guiOn              = false;          // True while GUI is running
-    private static boolean gameFlag           = false;          // Sets when the DM starts the game
-    private static boolean ipFlag             = false;          // Sets when GUI receives a IP address
-    private static boolean partyFlag          = false;          // Sets when Client successfully joins party
-    private static boolean joinFail           = false;          // Sets when Client fails party join
-    private static boolean attemptedPartyJoin = false;          // Sets when Client attempts to join party
-    private static String ipAddress           = null;           // IP Address received from GUI
-    private static Stack<String> userIDs      = new Stack<String>(); // DM's party
+
+    // Flags
+    private static boolean uidFlag            = false;           // Sets if myUID has not been set yet
+    private static boolean serverFlag         = false;           // Sets when User chooses DM option
+    private static boolean clientFlag         = false;           // Sets when User chooses Player option
+    private static boolean guiOn              = false;           // True while GUI is running
+    private static boolean gameFlag           = false;           // Sets when the DM starts the game
+    private static boolean ipFlag             = false;           // Sets when GUI receives a IP address
+    private static boolean partyFlag          = false;           // Sets when Client successfully joins party
+    private static boolean joinFail           = false;           // Sets when Client fails party join
+    private static boolean attemptedPartyJoin = false;           // Sets when Client attempts to join party
+    private static boolean tradeOfferFlag     = false;           // Sets when User has a trade offer
+    private static boolean tradeReceiveFlag   = false;           // Sets when User has receives a trade offer
+
+    // Data communicated internally between the Network and GUI
+    private static String ipAddress           = null;            // IP Address received from GUI
+    private static Stack<String> userIDs      = new Stack<String>();  // DM's party
+    private static Inventory offerInventory   = new Inventory(); // Item's being offered in trade
+    private static Inventory receiveInventory = new Inventory(); // Item's being received in trade
+
 
 
 
@@ -258,5 +270,81 @@ public class ThreadBridge {
             }
         } catch (SocketException e) { throw new RuntimeException(e); }
         return returnList;  // Return the correct IP addresses
+    }
+
+
+    /**
+     * Check tradeOfferFlag's value
+     *
+     * @return boolean value
+     */
+    public static synchronized boolean checkOfferFlag(){ return tradeOfferFlag; }
+
+
+    /**
+     * Return current offerInventory, reset the tradeOfferFlag. If tradeOfferFlag is false, will throw a
+     * NullPointerException instead
+     *
+     * @return offerInventory, or throws a NullPointerException
+     */
+    public static synchronized Inventory getOfferInventory(){
+        if(tradeOfferFlag == false){
+            throw new NullPointerException();
+        } else {
+            tradeOfferFlag = false;
+            return offerInventory;
+        }
+    }
+
+
+    /**
+     * Update the offerInventory, set the tradeOfferFlag
+     *
+     * @param offerInventory Inventory being offered by the user
+     */
+    public static synchronized void setOfferInventory(Inventory offerInventory){
+        ThreadBridge.offerInventory = offerInventory;
+        tradeOfferFlag = true;
+    }
+
+
+    /**
+     * Set tradeOfferFlag to true, used when a Write Request fails in the PlayerClient Class
+     */
+    public static synchronized void resetTradeOfferFlag(){ tradeOfferFlag = true; }
+
+
+    /**
+     * Check tradeReceiveFlag's value
+     *
+     * @return boolean value
+     */
+    public static synchronized boolean checkReceiveFlag(){ return tradeReceiveFlag; }
+
+
+    /**
+     * Return current receiveInventory, reset the tradeReceiveFlag. If tradeReceiveFlag is false, will throw a
+     * NullPointerException instead
+     *
+     * @return receiveInventory, or throws a NullPointerException
+     */
+    public static synchronized Inventory getReceiveInventory(){
+        if(tradeReceiveFlag == false){
+            throw new NullPointerException();
+        } else {
+            tradeReceiveFlag = false;
+            return receiveInventory;
+        }
+    }
+
+
+    /**
+     * Update the receiveInventory, set the tradeReceiveFlag
+     *
+     * @param receiveInventory Inventory being received by the user
+     */
+    public static synchronized void setReceiveInventory(Inventory receiveInventory){
+        ThreadBridge.receiveInventory = offerInventory;
+        tradeReceiveFlag = true;
     }
 }

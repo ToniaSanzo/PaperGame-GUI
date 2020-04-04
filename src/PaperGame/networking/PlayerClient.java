@@ -7,6 +7,7 @@ import PaperGame.utility.ThreadBridge;
 import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.rmi.UnexpectedException;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -16,21 +17,22 @@ public class PlayerClient implements Runnable
     private static UserID serverID;              // Object containing essential info on communication with server
 
     // Opcode's, used in packet header's to distinguish the purpose of a packet
-    private static final byte RRQ  = 0;      // Read Request
-    private static final byte WRQ  = 1;      // Write Request
-    private static final byte ACK  = 2;      // Acknowledge
-    private static final byte DATA = 3;      // Data Packet
+    private static final byte RRQ         = 0;      // Read Request
+    private static final byte WRQ         = 1;      // Write Request
+    private static final byte ACK         = 2;      // Acknowledge
+    private static final byte DATA        = 3;      // Data Packet
 
     // Object Type Code's, used in packet header's to distinguish the object type of a given piece of Data
-    private static final byte CMAP = 4;      // Combat Map Object
-    private static final byte WPN  = 5;      // Weapon Object
-    private static final byte AMR  = 6;      // Armor Object
-    private static final byte CNSM = 7;      // Consumable Object
-    private static final byte CHMP = 8;      // Champion Object
-    private static final byte CRTR = 9;      // Creature Object
-    private static final byte INV  = 10;     // Inventory Object
+    private static final byte CMAP        = 4;      // Combat Map Object
+    private static final byte WPN         = 5;      // Weapon Object
+    private static final byte AMR         = 6;      // Armor Object
+    private static final byte CNSM        = 7;      // Consumable Object
+    private static final byte CHMP        = 8;      // Champion Object
+    private static final byte CRTR        = 9;      // Creature Object
+    private static final byte INV         = 10;     // Inventory Object
 
 
+    private static final int WINDOW_SIZE  = 4;    // Window size for Sliding Window Protocol
     private static final int PAYLOAD      = 503;  // Size of the Data payload per packet
     private static final int PAYLOAD_HEAD = 9;    // Index the payload begin's in a data packet
 
@@ -40,42 +42,16 @@ public class PlayerClient implements Runnable
         // Create the clients user id
         openSocket(1000);
 
-        // Loop until PlayerClient successfully joins the DMServer
-        while(true){
-            System.out.println("Executing PlayerClient loop");
-            ThreadBridge.setAttemptedPartyJoin(false);
-            ThreadBridge.setJoinFail(false);
-            ThreadBridge.setIPFlag(false);
-            while (!ThreadBridge.checkIP()) {
-
-                // Terminate, if GUI's closed
-                if (!ThreadBridge.isGuiOn()) {
-                    closeSocket();
-                    return;
-                }
-
-                // Sleep for a 1/3 of a second, than check again
-                try { Thread.sleep(333); } catch (InterruptedException ex) { ex.printStackTrace(); }
-            }
-
-            try {
-                // Grab IP from ThreadBridge, attempt to connect to the Server
-                joinServer(ThreadBridge.getIpAddress());
-            } catch (Exception e) {
-                ThreadBridge.setAttemptedPartyJoin(true);
-                ThreadBridge.setJoinFail(true);
-                try {
-                    Thread.sleep(333);
-                } catch(InterruptedException ex){
-                    ex.printStackTrace();
-                }
-                System.err.println("PlayerClient failed to join the DMServer");
-                continue;
-            }
-            ThreadBridge.setAttemptedPartyJoin(true);
-            ThreadBridge.setJoinFail(false);
-            break;
+        // Used to join the DM's party
+        try {
+            joinParty();
+        } catch(RuntimeException ex){
+            closeSocket();
+            return;
         }
+
+        // Main network loop, handle's writing and listening
+        clientRun();
 
         closeSocket();
     }
@@ -137,7 +113,8 @@ public class PlayerClient implements Runnable
 
     /**
      * Listens to a potential request, and continues with the appropriate sequence of operations based on the request
-     * @exception Exception
+     *
+     * @exception Exception Thrown when a SocketTimeoutException occurs
      */
     public static TransferredObject listen() throws Exception{
         byte [] ackData, requestData = new byte[10];
@@ -145,12 +122,11 @@ public class PlayerClient implements Runnable
         int objSize;
         DatagramPacket rqPacket, ackPacket;
 
-
         // Receive request from server (e.g. Write Request, Read Request, etc.)
-        clientSocket.setSoTimeout(0);
+        clientSocket.setSoTimeout(2000);
         rqPacket = new DatagramPacket(requestData, requestData.length);
         clientSocket.receive(rqPacket);
-        clientSocket.setSoTimeout(300);
+        clientSocket.setSoTimeout(450);
 
         // Ack message is a copy of the request from server
         ackData = rqPacket.getData();
@@ -230,10 +206,7 @@ public class PlayerClient implements Runnable
                 break;
         }
 
-
-        // TEMPORARY
         return null;
-        // TEMPORARY
     }
 
 
@@ -310,6 +283,205 @@ public class PlayerClient implements Runnable
         // Convert the Ack message into a datagramPacket, than send the Ack
         DatagramPacket ackPacket = new DatagramPacket(ackData, ackData.length, ipAddr, port);
         try { clientSocket.send(ackPacket); } catch(IOException ex){ ex.printStackTrace(); }
+    }
+
+
+    /**
+     * Network loop, checks to see if the client needs to write to the server, if not listen to the server,
+     * than check to make sure the program's still on
+     */
+    public static void clientRun(){
+        TransferredObject transferredObject; // Used
+
+        while(true){
+
+            // If the client has a write request
+            if(ThreadBridge.checkOfferFlag()){
+                // Attempt to write the offerInventory to the server, If the WRQ fails reset the getOfferInventory
+                try{
+                    writeObject(serverID, ThreadBridge.getOfferInventory());
+                } catch(RuntimeException ex){
+                    System.err.println("WRQ failed, will attempt WRQ later");
+                    ThreadBridge.resetTradeOfferFlag();
+                } catch(Exception ex){
+                    ex.printStackTrace();
+                }
+            }
+
+            // Listen to Server
+            try{
+                transferredObject = listen();
+                if(transferredObject.getType() == Inventory.INVENTORY){
+                    ThreadBridge.setReceiveInventory((Inventory)transferredObject);
+                }
+            } catch(Exception ex){ }
+
+            // Sleep
+            try { Thread.sleep(313); } catch(InterruptedException ex){ }
+
+            // Terminate, if GUI's closed
+            if (!ThreadBridge.isGuiOn()) { return; }
+        }
+
+    }
+
+
+    /**
+     * Write an object to a playerClient Socket, This is done by sending a write request packet to the client, receiving
+     * an Ack packet and than sequentially sending the objects data in packets sized to 512 bytes with a 503 byte
+     * payload.
+     *
+     * @param userID UserID of the client
+     * @param inventory Inventory sent to the client
+     * @throws Exception
+     */
+    public static void writeObject(UserID userID, Inventory inventory) throws Exception{
+        byte [] data, wrqData = new byte[10], ackData = new byte[10];
+        int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1, wrqFailCount = 0;
+        boolean ackFail;
+        DatagramPacket dataPacket, sendPacket, ackPacket;
+
+        // Convert the Inventory into a byte array
+        byte [] objBytes = Inventory.convertToBytes(inventory);
+        objSize = objBytes.length;
+
+        // Determine the number of blocks needed to be sent to the client
+        if(objBytes.length % 503 == 0) finalBlockNo = objSize / 503;
+        else finalBlockNo = (objSize / 503) + 1;
+
+        // Create write request packet:
+        // [byte][byte][byte][byte][byte]          [int]         [byte]
+        //  -----------------------------------------------------------
+        // |  0  | opc |  0  | type|  0  |      object size      |  0  |
+        //  -----------------------------------------------------------
+        wrqData[1] = WRQ;  // Set the opcode to write request
+        wrqData[3] = INV;  // Set object type to Inventory
+
+        // Add the object's length to the write request packet
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(objBytes.length);
+        wrqData[5] = buffer.get(0);
+        wrqData[6] = buffer.get(1);
+        wrqData[7] = buffer.get(2);
+        wrqData[8] = buffer.get(3);
+
+        do {
+            // Send Write Request to client
+            sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
+            clientSocket.send(sendPacket);
+
+            // Receive Ack from client
+            ackPacket = new DatagramPacket(ackData, ackData.length);
+            clientSocket.receive(ackPacket);
+
+            // Confirm the Ack packet
+            buffer = ByteBuffer.wrap(ackPacket.getData());
+            if (buffer.get(3) == INV && buffer.getInt(4) == objSize){
+                ackFail = true;
+                wrqFailCount++;
+            }
+            else {
+                ackFail = false;
+            }
+
+            // If the WRQ failed 3 times, throw a RuntimeException
+            if(wrqFailCount > 2){ throw new RuntimeException(); }
+
+        } while(ackFail);  // Resend Write Request, in the event of a failure
+
+
+        // Send Inventory to Client
+        while(true) {
+            // Send window to client
+            block = windowHead;
+            while (block < WINDOW_SIZE + windowHead && block <= finalBlockNo) {
+                // Create the Data packet:
+                //  0 1 2 3  4 5 6 7 8    9   10   11   12   13 ...  511
+                //  ----------------------------------------------------
+                // |0|#|0|#|Packet #|0|DATA|DATA|DATA|DATA|DATA|...|DATA|
+                //  ----------------------------------------------------
+                //
+                // 1) Generate data packet heading
+                data = new byte[512];
+                data[1] = DATA;
+                data[3] = INV;
+                data[4] = (byte) (block >> 24);
+                data[5] = (byte) (block >> 16);
+                data[6] = (byte) (block >> 8);
+                data[7] = (byte) (block);
+                // 2) Generate data packet payload
+                index = 9;
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i < objSize; i++) {
+                    data[index] = objBytes[i];
+                    ++index;
+                }
+
+                // Send Data Packet
+                dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
+                clientSocket.send(dataPacket);
+
+                block++;  // Increment the block number
+            }
+
+            // Receive client ack, and update window head
+            while (true) {
+                // Create the ackPacket
+                ackData = new byte[10];
+                ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
+
+                // Receive Ack
+                try { clientSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+
+                // Check the Ack packet number
+                buffer = ByteBuffer.wrap(ackPacket.getData());
+                ackPacketNo = buffer.getInt(5);
+
+                // Increment window head, after a successful Ack, end message after final ack is received
+                if (ackPacketNo == windowHead) windowHead++;
+                if(windowHead > finalBlockNo) return;
+            }
+        }
+    }
+
+
+    /**
+     * Attempts to connect a client to a DM's party
+     */
+    public static void joinParty(){
+        // Loop until PlayerClient successfully joins the DMServer
+        while(true){
+            ThreadBridge.setAttemptedPartyJoin(false);
+            ThreadBridge.setJoinFail(false);
+            ThreadBridge.setIPFlag(false);
+            while (!ThreadBridge.checkIP()) {
+
+                // Terminate, if GUI's closed
+                if (!ThreadBridge.isGuiOn()) {
+                    throw new RuntimeException();
+                }
+
+                // Sleep for a 1/3 of a second, than check again
+                try { Thread.sleep(333); } catch (InterruptedException ex) { ex.printStackTrace(); }
+            }
+
+            try {
+                // Grab IP from ThreadBridge, attempt to connect to the Server
+                joinServer(ThreadBridge.getIpAddress());
+            } catch (Exception e) {
+                ThreadBridge.setAttemptedPartyJoin(true);
+                ThreadBridge.setJoinFail(true);
+                try {
+                    Thread.sleep(333);
+                } catch(InterruptedException ex){
+                    ex.printStackTrace();
+                }
+                System.err.println("PlayerClient failed to join the DMServer");
+                continue;
+            }
+            ThreadBridge.setAttemptedPartyJoin(true);
+            ThreadBridge.setJoinFail(false);
+            break;
+        }
     }
 
 
