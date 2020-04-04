@@ -76,8 +76,6 @@ public class DMServer implements Runnable
                 if(uID != null){
                     // Add UserIDs to the Server's UserID list
                     userIDs.add(uID);
-                    // send the userID's name to the GUI
-                    ThreadBridge.pushUser(uID.getName());
                 }
             }
         } catch(Exception e) {
@@ -161,6 +159,16 @@ public class DMServer implements Runnable
         data = clientJoinAckArray(hashCode);
         DatagramPacket sendPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
         serverSocket.send(sendPacket);
+
+        // Check each userID to see if this is a new user or a championName update to a user
+        for(int i = 0; i < userIDs.size(); i++){
+            if(hashCode == userIDs.get(i).getHashCode()){
+                userIDs.get(i).setChampion(userName);
+                // send the userID's champ name to the GUI
+                ThreadBridge.pushUser(userName);
+                return null;
+            }
+        }
 
         return userID;  // Return the client's UserID
     }

@@ -30,6 +30,7 @@ public class PlayerClient implements Runnable
     private static final byte CHMP        = 8;      // Champion Object
     private static final byte CRTR        = 9;      // Creature Object
     private static final byte INV         = 10;     // Inventory Object
+    private static final byte STR         = 11;     // String object
 
 
     private static final int WINDOW_SIZE  = 4;    // Window size for Sliding Window Protocol
@@ -45,10 +46,13 @@ public class PlayerClient implements Runnable
         // Used to join the DM's party
         try {
             joinParty();
-        } catch(RuntimeException ex){
+            writeChampionName();
+        } catch(Exception ex){
             closeSocket();
             return;
         }
+
+
 
         // Main network loop, handle's writing and listening
         clientRun();
@@ -108,6 +112,60 @@ public class PlayerClient implements Runnable
                 serverID = new UserID("Server ID", "Server ID".hashCode(), IPAddress, 9876);
                 return true;
             } else return false;
+    }
+
+
+    /**
+     * Write the Player's champion's name to the server
+     * Below is a model of the joinPacket byte array, i.e.
+     *
+     *              [byte][char][char][char][char][char][byte][int]
+     *               ----------------------------------------------
+     *              |  0  | 'c' | 'h' | 'm' | 'p' |'NUL'|  0  | 42 |
+     *               ----------------------------------------------
+     *
+     * @return True after successful communication with server, otherwise false
+     */
+    public static boolean writeChampionName() throws Exception{
+        String championName;
+        String userName = ((UserID)SaveLoad.readObjectFromFile(System.getProperty("user.dir") +
+                "/src/PaperGame/res/UID/myUID")).getName();
+        int hashCode;
+        byte[] receiveData = new byte[4];
+
+        // Wait until the Player chooses a champion, than get the champion name and send it to the server
+        while(!ThreadBridge.checkChampionName()){ Thread.sleep(300); }
+        championName = ThreadBridge.getChampionName();
+
+        // Create a joinPacket byte array:
+        // [byte][char][char][char][char][char][byte][int]
+        //  ----------------------------------------------
+        // |  0  | 'c' | 'h' | 'm' | 'p' |'NUL'|  0  | 42 |
+        //  ----------------------------------------------
+        ByteBuffer byteBuffer = ByteBuffer.allocate(128);
+        byteBuffer.put((byte)0);
+        for(int i = 0; i < championName.length(); i++){ byteBuffer.putChar(championName.charAt(i)); }
+        byteBuffer.putChar((char)0);
+        byteBuffer.put((byte)0);
+        hashCode = userName.hashCode();
+        byteBuffer.putInt(hashCode);
+        byte[] sendData = byteBuffer.array();
+
+        // Send the joinPacket to the Server
+        DatagramPacket sendPacket =
+                new DatagramPacket(sendData, sendData.length, serverID.getIpAddr(), serverID.getPort());
+
+        clientSocket.send(sendPacket);
+        // Receive the joinAckPacket from the Server
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        clientSocket.receive(receivePacket);
+        byteBuffer = ByteBuffer.wrap(receivePacket.getData());
+        int hashCode2 = byteBuffer.getInt();
+
+        // After successful communication, create the server's User ID and return true
+        if(hashCode == hashCode2){
+            return true;
+        } else return false;
     }
 
 

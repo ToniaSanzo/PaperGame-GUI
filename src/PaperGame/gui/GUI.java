@@ -775,6 +775,9 @@ public class GUI extends Application implements Runnable {
         // Prevent null pointer exceptions
         if(currentChamp == null){ return; }
 
+        // Update ThreadBridge with championName
+        if(!ThreadBridge.checkChampionName()){ ThreadBridge.setChampionName(currentChamp.getName()); }
+
         // Generate the Character info on the left side of the scene
         plyrMstrChmpImg = new Image(currentChamp.getImagePath());
         plyrMstrChmpImgView = new ImageView(plyrMstrChmpImg);

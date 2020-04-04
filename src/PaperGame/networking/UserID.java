@@ -6,6 +6,7 @@ import java.net.InetAddress;
 public class UserID implements Serializable {
     private int port;            // This user's Port
     private String name;         // This user's name
+    private String champion;     // This user's champion name
     private int hashCode;        // This user's hash code
     private InetAddress ipAddr;  // This user's IP address
 
@@ -24,6 +25,22 @@ public class UserID implements Serializable {
         this.ipAddr = ipAddr;
         this.port = port;
     }
+
+
+    /**
+     * Set the Champion Name for this userID
+     *
+     * @param champion - Champion Name
+     */
+    public void setChampion(String champion) { this.champion = champion; }
+
+
+    /**
+     * Return UserID's champion name
+     *
+     * @return champion name
+     */
+    public String getChampion(){ return champion; }
 
 
     /**

@@ -31,9 +31,11 @@ public class ThreadBridge {
     private static boolean attemptedPartyJoin = false;           // Sets when Client attempts to join party
     private static boolean tradeOfferFlag     = false;           // Sets when User has a trade offer
     private static boolean tradeReceiveFlag   = false;           // Sets when User has receives a trade offer
+    private static boolean championNameFlag   = false;           // Sets when User knows what champion they are playing
 
     // Data communicated internally between the Network and GUI
     private static String ipAddress           = null;            // IP Address received from GUI
+    private static String championName        = null;            // Current user's champion name
     private static Stack<String> userIDs      = new Stack<String>();  // DM's party
     private static Inventory offerInventory   = new Inventory(); // Item's being offered in trade
     private static Inventory receiveInventory = new Inventory(); // Item's being received in trade
@@ -346,5 +348,32 @@ public class ThreadBridge {
     public static synchronized void setReceiveInventory(Inventory receiveInventory){
         ThreadBridge.receiveInventory = offerInventory;
         tradeReceiveFlag = true;
+    }
+
+
+    /**
+     * Check the championNameFlag
+     *
+     * @return boolean
+     */
+    public static synchronized boolean checkChampionName(){ return championNameFlag; }
+
+
+    /**
+     * Get championName
+     *
+     * @return champion name
+     */
+    public static synchronized String getChampionName(){ return championName; }
+
+
+    /**
+     * Set championName, set championName flag to true
+     *
+     * @param championName champion name
+     */
+    public static synchronized void setChampionName(String championName){
+        ThreadBridge.championName = championName;
+        championNameFlag = true;
     }
 }
