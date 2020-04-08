@@ -8,13 +8,15 @@ import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.rmi.UnexpectedException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class PlayerClient implements Runnable
 {
-    private static DatagramSocket clientSocket;  // Client Socket used for network communication
-    private static UserID serverID;              // Object containing essential info on communication with server
+    private static DatagramSocket clientSocket;
+    //private static UserID serverID;
+    private static ArrayList<UserID> userIDs;
 
     // Opcode's, used in packet header's to distinguish the purpose of a packet
     private static final byte RRQ         = 0;      // Read Request
@@ -30,7 +32,7 @@ public class PlayerClient implements Runnable
     private static final byte CHMP        = 8;      // Champion Object
     private static final byte CRTR        = 9;      // Creature Object
     private static final byte INV         = 10;     // Inventory Object
-    private static final byte STR         = 11;     // String object
+    private static final byte UID         = 11;     // UserID object
 
 
     private static final int WINDOW_SIZE  = 4;    // Window size for Sliding Window Protocol
@@ -40,7 +42,7 @@ public class PlayerClient implements Runnable
 
     //- CLEAN UP -------------------------------------------------------------------------------------------------------
     public void run() {
-        // Create the clients user id
+        userIDs = new ArrayList<UserID>();
         openSocket(1000);
 
         // Used to join the DM's party
@@ -109,7 +111,7 @@ public class PlayerClient implements Runnable
 
             // After successful communication, create the server's User ID and return true
             if(hashCode == hashCode2){
-                serverID = new UserID("Server ID", "Server ID".hashCode(), IPAddress, 9876);
+                userIDs.add(new UserID("Server ID", "Server ID".hashCode(), IPAddress, 9876));
                 return true;
             } else return false;
     }
@@ -153,7 +155,7 @@ public class PlayerClient implements Runnable
 
         // Send the joinPacket to the Server
         DatagramPacket sendPacket =
-                new DatagramPacket(sendData, sendData.length, serverID.getIpAddr(), serverID.getPort());
+                new DatagramPacket(sendData, sendData.length, userIDs.get(0).getIpAddr(), userIDs.get(0).getPort());
 
         clientSocket.send(sendPacket);
         // Receive the joinAckPacket from the Server
@@ -357,7 +359,7 @@ public class PlayerClient implements Runnable
             if(ThreadBridge.checkOfferFlag()){
                 // Attempt to write the offerInventory to the server, If the WRQ fails reset the getOfferInventory
                 try{
-                    writeObject(serverID, ThreadBridge.getOfferInventory());
+                    writeObject(userIDs.get(0), ThreadBridge.getOfferInventory());
                 } catch(RuntimeException ex){
                     System.err.println("WRQ failed, will attempt WRQ later");
                     ThreadBridge.resetTradeOfferFlag();
@@ -369,8 +371,15 @@ public class PlayerClient implements Runnable
             // Listen to Server
             try{
                 transferredObject = listen();
-                if(transferredObject.getType() == Inventory.INVENTORY){
+
+                if(transferredObject.getType() == TransferredObject.INVENTORY){
                     ThreadBridge.setReceiveInventory((Inventory)transferredObject);
+                }
+
+                if(transferredObject.getType() == TransferredObject.USER_ID){
+                    userIDs.add((UserID)transferredObject);
+                    ((UserID) transferredObject).printUID();
+                    System.out.println("Successfully added to the userIDs");
                 }
             } catch(Exception ex){ }
 

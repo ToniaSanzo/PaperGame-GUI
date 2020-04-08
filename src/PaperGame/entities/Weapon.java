@@ -40,7 +40,7 @@ public class Weapon extends Equipment {
 
 
     /**
-     * @return Returns that this item is a weapon
+     * @return Returns that this item is a Weapon
      */
     @Override
     public String getType(){

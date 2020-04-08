@@ -30,6 +30,7 @@ public class DMServer implements Runnable
     private static final byte CHMP        = 8;      // Champion Object
     private static final byte CRTR        = 9;      // Creature Object
     private static final byte INV         = 10;     // Inventory Object
+    private static final byte UID         = 11;     // UserID object
 
     private static final int WINDOW_SIZE  = 4;      // Window size for Sliding Window Protocol
     private static final int PAYLOAD      = 503;    // Size of the Data payload per packet
@@ -47,10 +48,27 @@ public class DMServer implements Runnable
         // Initialize every player's user ID
         partyJoin();
 
+        // Write party information to each party member
+        updateParty();
+
         // Server's network loop
         //serverRun();
 
         closeSocket(); // Close server socket
+    }
+
+
+    /**
+     * Write UserID information to every UserID
+     */
+    public static void updateParty(){
+        // Communicate every UserID to each party member
+        for(UserID currID : userIDs){
+            for(UserID commID : userIDs){
+                // Prevent communicating the current UserID to itself
+                if(commID != currID){ try { writeObject(currID, commID); } catch(Exception ex){} }
+            }
+        }
     }
 
 
@@ -973,6 +991,115 @@ public class DMServer implements Runnable
 
 
     /**
+     * Write an object to a playerClient Socket, This is done by sending a write request packet to the client, receiving
+     * an Ack packet and than sequentially sending the objects data in packets sized to 512 bytes with a 503 byte
+     * payload.
+     *
+     * @param userID UserID of the client
+     * @param uID UserID sent to the client
+     * @throws Exception
+     */
+    public static void writeObject(UserID userID, UserID uID) throws Exception{
+        byte [] data, wrqData = new byte[10], ackData = new byte[10];
+        int index, ackPacketNo, objSize, finalBlockNo, block, windowHead = 1;
+        boolean ackFail;
+        DatagramPacket dataPacket, sendPacket, ackPacket;
+
+        // Convert the UserID into a byte array
+        byte [] objBytes = UserID.convertToBytes(uID);
+        objSize = objBytes.length;
+
+        // Determine the number of blocks needed to be sent to the client
+        if(objBytes.length % 503 == 0) finalBlockNo = objSize / 503;
+        else finalBlockNo = (objSize / 503) + 1;
+
+        // Create write request packet:
+        // [byte][byte][byte][byte][byte]          [int]         [byte]
+        //  -----------------------------------------------------------
+        // |  0  | opc |  0  | type|  0  |      object size      |  0  |
+        //  -----------------------------------------------------------
+        wrqData[1] = WRQ;  // Set the opcode to write request
+        wrqData[3] = UID;  // Set object type to UserID
+
+        // Add the object's length to the write request packet
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(objBytes.length);
+        wrqData[5] = buffer.get(0);
+        wrqData[6] = buffer.get(1);
+        wrqData[7] = buffer.get(2);
+        wrqData[8] = buffer.get(3);
+
+        do {
+            // Send Write Request to client
+            sendPacket = new DatagramPacket(wrqData, wrqData.length, userID.getIpAddr(), userID.getPort());
+            serverSocket.send(sendPacket);
+
+            // Receive Ack from client
+            ackPacket = new DatagramPacket(ackData, ackData.length);
+            serverSocket.receive(ackPacket);
+
+            // Confirm the Ack packet
+            buffer = ByteBuffer.wrap(ackPacket.getData());
+            if (buffer.get(3) == INV && buffer.getInt(4) == objSize) ackFail = true;
+            else ackFail = false;
+        } while(ackFail);  // Resend Write Request, in the event of a failure
+
+
+        // Send UserID to Client
+        while(true) {
+            // Send window to client
+            block = windowHead;
+            while (block < WINDOW_SIZE + windowHead && block <= finalBlockNo) {
+                // Create the Data packet:
+                //  0 1 2 3  4 5 6 7 8    9   10   11   12   13 ...  511
+                //  ----------------------------------------------------
+                // |0|#|0|#|Packet #|0|DATA|DATA|DATA|DATA|DATA|...|DATA|
+                //  ----------------------------------------------------
+                //
+                // 1) Generate data packet heading
+                data = new byte[512];
+                data[1] = DATA;
+                data[3] = UID;
+                data[4] = (byte) (block >> 24);
+                data[5] = (byte) (block >> 16);
+                data[6] = (byte) (block >> 8);
+                data[7] = (byte) (block);
+                // 2) Generate data packet payload
+                index = 9;
+                for (int i = (block - 1) * PAYLOAD; i < block * PAYLOAD && i < objSize; i++) {
+                    data[index] = objBytes[i];
+                    ++index;
+                }
+
+                // Send Data Packet
+                dataPacket = new DatagramPacket(data, data.length, userID.getIpAddr(), userID.getPort());
+                serverSocket.send(dataPacket);
+
+                block++;  // Increment the block number
+            }
+
+            // Receive client ack, and update window head
+            while (true) {
+                // Create the ackPacket
+                ackData = new byte[10];
+                ackPacket = new DatagramPacket(ackData, ackData.length, userID.getIpAddr(), userID.getPort());
+
+                // Receive Ack
+                try { serverSocket.receive(ackPacket); } catch (SocketTimeoutException ex) { break; }
+
+                // Check the Ack packet number
+                buffer = ByteBuffer.wrap(ackPacket.getData());
+                ackPacketNo = buffer.getInt(5);
+
+                // Increment window head, after a successful Ack, end message after final ack is received
+                if (ackPacketNo == windowHead) windowHead++;
+                if(windowHead > finalBlockNo) return;
+            }
+        }
+    }
+
+
+    /**
      * Listens to a potential request, and continues with the appropriate sequence of operations based on the request
      *
      * @exception Exception Thrown when a SocketTimeoutException occurs
@@ -1049,10 +1176,16 @@ public class DMServer implements Runnable
                         Creature.convertToCreature(object).printCreature();
                         return rtnObj;
 
-                    // Creature
+                    // Inventory
                     case INV:
                         rtnObj = Inventory.convertToInventory(object);
                         Inventory.convertToInventory(object).printInventory();
+                        return rtnObj;
+
+                    // UserID
+                    case UID:
+                        rtnObj = UserID.convertToUserID(object);
+                        UserID.convertToUserID(object).printUID();
                         return rtnObj;
 
                     // Default
