@@ -186,8 +186,8 @@ public class DMServer implements Runnable
         for(int i = 0; i < userIDs.size(); i++){
             if(hashCode == userIDs.get(i).getHashCode()){
                 userIDs.get(i).setChampion(userName);
-                // send the userID's champ name to the GUI
-                ThreadBridge.pushUser(userName);
+                // send the userID's to the GUI
+                ThreadBridge.pushUser(userIDs.get(i));
                 return null;
             }
         }

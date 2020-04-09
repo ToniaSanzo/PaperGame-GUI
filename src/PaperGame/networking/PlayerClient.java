@@ -15,7 +15,6 @@ import java.util.Scanner;
 public class PlayerClient implements Runnable
 {
     private static DatagramSocket clientSocket;
-    //private static UserID serverID;
     private static ArrayList<UserID> userIDs;
 
     // Opcode's, used in packet header's to distinguish the purpose of a packet
@@ -110,6 +109,7 @@ public class PlayerClient implements Runnable
             // After successful communication, create the server's User ID and return true
             if(hashCode == hashCode2){
                 userIDs.add(new UserID("Server ID", "Server ID".hashCode(), IPAddress, 9876));
+                userIDs.get(0).setChampion("Dungeon Master");
                 return true;
             } else return false;
     }
@@ -182,10 +182,8 @@ public class PlayerClient implements Runnable
 
         // Receive request from server (e.g. Write Request, Read Request, etc.)
         clientSocket.setSoTimeout(2000);
-        System.out.println("Listening");
         rqPacket = new DatagramPacket(requestData, requestData.length);
         clientSocket.receive(rqPacket);
-        System.out.println("Request Packet received");
         clientSocket.setSoTimeout(450);
 
         // Ack message is a copy of the request from server
@@ -204,7 +202,6 @@ public class PlayerClient implements Runnable
                 break;
             // Write Request
             case WRQ:  // WRQ: The server is attempting to write an object to
-                System.out.println("The server is attempting to write an object to the client");
                 TransferredObject rtnObj;
                 ackPacket = new DatagramPacket(ackData, ackData.length, rqPacket.getAddress(), rqPacket.getPort());
                 clientSocket.send(ackPacket);
@@ -385,8 +382,7 @@ public class PlayerClient implements Runnable
 
                 if(transferredObject.getType() == TransferredObject.USER_ID){
                     userIDs.add((UserID)transferredObject);
-                    ((UserID) transferredObject).printUID();
-                    System.out.println("Successfully added to the userIDs");
+                    ThreadBridge.pushUser(userIDs.get(userIDs.size() - 1));
                 }
             } catch(Exception ex){ }
 

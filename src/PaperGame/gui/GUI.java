@@ -36,11 +36,13 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class GUI extends Application implements Runnable {
-    public static Champion currentChamp = null;       // The Player's current Champion
-    public static Inventory offerInventory = null;    // Items being offered in trade
+    public static Champion currentChamp      = null;  // The Player's current Champion
+    public static Inventory offerInventory   = null;  // Items being offered in trade
     public static Inventory receiveInventory = null;  // Items being received in trade
+    public static ArrayList<UserID> userIDs  = null;  // UserIDs within the party
 
 
     // List item containing the name of an item and the quantity to trade
@@ -286,6 +288,7 @@ public class GUI extends Application implements Runnable {
     Menu plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrSCMenu;
     Image plyrMstrChmpImg;
     ImageView plyrMstrChmpImgView;
+    Timeline actionHandler;
 
     // Objects used in the Player-Fluid-Inventory sub screen
     ListView<String> inventoryList;
@@ -329,6 +332,7 @@ public class GUI extends Application implements Runnable {
      */
     @Override
     public void start(Stage primaryStage) throws Exception{
+        userIDs = new ArrayList<UserID>();
         stage = primaryStage;
 
         // Creates the Dungeon Master or Player Scene
@@ -472,7 +476,9 @@ public class GUI extends Application implements Runnable {
             @Override
             public void handle(ActionEvent event) {
                 if(!ThreadBridge.userEmpty()){
-                    dmRoomJoinStartUID.getItems().add(ThreadBridge.popUser() + " joined the party");
+                    userIDs.add(ThreadBridge.popUser());
+                    dmRoomJoinStartUID.getItems().add(userIDs.get(userIDs.size() - 1).getChampion() +
+                            " joined the party");
                 }
             }
         }));
@@ -590,6 +596,7 @@ public class GUI extends Application implements Runnable {
         }
     }
 
+
     /**
      * Sets the champion class while creating a champion in the create a champion scene
      * @param chmpClass the string that will represent the champion class
@@ -688,6 +695,7 @@ public class GUI extends Application implements Runnable {
         }
     }
 
+
     /**
      * This is the function called when the user clicks the accept button in the Create a Champ Scene
      */
@@ -774,6 +782,17 @@ public class GUI extends Application implements Runnable {
     private void createMainChmpScene(){
         // Prevent null pointer exceptions
         if(currentChamp == null){ return; }
+
+        // Handles asynchronous events
+        actionHandler = new Timeline(new KeyFrame(Duration.seconds(.3), new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if(!ThreadBridge.userEmpty()){
+                    userIDs.add(ThreadBridge.popUser());
+                    System.out.println(userIDs.get(userIDs.size()-1).getChampion() + " has been added to the GUI");
+                }
+            }
+        }));
 
         // Update ThreadBridge with championName
         if(!ThreadBridge.checkChampionName()){ ThreadBridge.setChampionName(currentChamp.getName()); }
@@ -1019,6 +1038,7 @@ public class GUI extends Application implements Runnable {
         stage.setScene(plyrMstrScene);
         stage.setTitle(currentChamp.getName());
         stage.show();
+        actionHandler.play();
     }
 
 

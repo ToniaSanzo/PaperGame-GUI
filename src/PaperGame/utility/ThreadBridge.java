@@ -1,6 +1,7 @@
 package PaperGame.utility;
 
 import PaperGame.entities.Inventory;
+import PaperGame.networking.UserID;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -36,19 +37,29 @@ public class ThreadBridge {
     // Data communicated internally between the Network and GUI
     private static String ipAddress           = null;            // IP Address received from GUI
     private static String championName        = null;            // Current user's champion name
-    private static Stack<String> userIDs      = new Stack<String>();  // DM's party
+    private static Stack<UserID> userIDs      = new Stack<>();   // UserIDs in the party
     private static Inventory offerInventory   = new Inventory(); // Item's being offered in trade
     private static Inventory receiveInventory = new Inventory(); // Item's being received in trade
 
 
-
-
+    /**
+     * ThreadBridge Constructor, used to create the GUI, Server, and Client thread
+     *
+     * @param gui GUI thread
+     * @param server Server thread
+     * @param client Client thread
+     */
     public ThreadBridge(Thread gui, Thread server, Thread client){
         this.gui = gui;
         this.server = server;
         this.client = client;
     }
 
+
+    /**
+     * Init starts the threads, starting with the GUI. Based on the User's interaction with the GUI init will start
+     * either the client or the server threads
+     */
     public void init(){
         boolean networkOn = false;
 
@@ -57,18 +68,15 @@ public class ThreadBridge {
         while(!networkOn) {
             try { Thread.sleep(300); } catch (InterruptedException ex){ ex.printStackTrace(); }
             if (serverFlag) {
-                System.out.println("Server Started!");
                 server.start();
                 networkOn = true;
             }
 
             if (clientFlag) {
-                System.out.println("Client Started!");
                 client.start();
                 networkOn = true;
             }
         }
-        System.out.println("init exited");
     }
 
 
@@ -94,7 +102,7 @@ public class ThreadBridge {
 
 
     /**
-     * Lets ThreadBridge know the GUI was closed
+     * Update ThreadBridge when the GUI's closed
      */
     public static synchronized void guiOff(){ guiOn = false;}
 
@@ -109,7 +117,9 @@ public class ThreadBridge {
 
 
     /**
-     * @return boolean, true if Client attempted to join party
+     * True if the client attempted to join the party
+     *
+     * @return boolean
      */
     public static boolean isAttemptedPartyJoin() { return attemptedPartyJoin; }
 
@@ -173,17 +183,17 @@ public class ThreadBridge {
     /**
      * Push user to stack
      *
-     * @param str user's name
+     * @param uID UserID
      */
-    public static synchronized void pushUser(String str){ userIDs.push(str); }
+    public static synchronized void pushUser(UserID uID){ userIDs.push(uID); }
 
 
     /**
      * Pop user from stack
      *
-     * @return user's name
+     * @return UserID
      */
-    public static synchronized String popUser(){ return userIDs.pop(); }
+    public static synchronized UserID popUser(){ return userIDs.pop(); }
 
 
     /**
