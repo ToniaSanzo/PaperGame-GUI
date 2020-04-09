@@ -54,8 +54,6 @@ public class PlayerClient implements Runnable
             return;
         }
 
-
-
         // Main network loop, handle's writing and listening
         clientRun();
 
@@ -184,8 +182,10 @@ public class PlayerClient implements Runnable
 
         // Receive request from server (e.g. Write Request, Read Request, etc.)
         clientSocket.setSoTimeout(2000);
+        System.out.println("Listening");
         rqPacket = new DatagramPacket(requestData, requestData.length);
         clientSocket.receive(rqPacket);
+        System.out.println("Request Packet received");
         clientSocket.setSoTimeout(450);
 
         // Ack message is a copy of the request from server
@@ -204,6 +204,7 @@ public class PlayerClient implements Runnable
                 break;
             // Write Request
             case WRQ:  // WRQ: The server is attempting to write an object to
+                System.out.println("The server is attempting to write an object to the client");
                 TransferredObject rtnObj;
                 ackPacket = new DatagramPacket(ackData, ackData.length, rqPacket.getAddress(), rqPacket.getPort());
                 clientSocket.send(ackPacket);
@@ -252,6 +253,12 @@ public class PlayerClient implements Runnable
                     case INV:
                         rtnObj = Inventory.convertToInventory(object);
                         Inventory.convertToInventory(object).printInventory();
+                        return rtnObj;
+
+                    // UserID
+                    case UID:
+                        rtnObj = UserID.convertToUserID(object);
+                        UserID.convertToUserID(object).printUID();
                         return rtnObj;
 
                     // Default

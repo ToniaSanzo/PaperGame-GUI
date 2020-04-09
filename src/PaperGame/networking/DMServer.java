@@ -66,7 +66,11 @@ public class DMServer implements Runnable
         for(UserID currID : userIDs){
             for(UserID commID : userIDs){
                 // Prevent communicating the current UserID to itself
-                if(commID != currID){ try { writeObject(currID, commID); } catch(Exception ex){} }
+                if(commID != currID){
+                    System.out.println("Attempting to write " + commID.getName() + "-UserID to " + currID + "-UserID");
+                    try {
+                        writeObject(currID, commID);
+                    } catch(Exception ex){} }
             }
         }
     }

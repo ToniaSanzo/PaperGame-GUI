@@ -26,7 +26,6 @@ public class SaveLoad {
             oOut.writeObject(serObj);
             oOut.close();
             fOut.close();
-            System.out.println("Save Successful");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -46,7 +45,6 @@ public class SaveLoad {
             oOut.writeObject(serObj);
             oOut.close();
             fOut.close();
-            System.out.println("Save Successful");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -70,7 +68,6 @@ public class SaveLoad {
             FileWriter fWriter = new FileWriter(chmpNameFile,true);
             fWriter.write(serObj.toString() + DELIMETER);
             fWriter.close();
-            System.out.println("Save Successful");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -90,7 +87,6 @@ public class SaveLoad {
             oOut.writeObject(serObj);
             oOut.close();
             fOut.close();
-            System.out.println("Save Successful");
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -112,7 +108,6 @@ public class SaveLoad {
 
             oIn.close();
             fIn.close();
-            System.out.println("Load Successful");
             return obj;
 
         } catch (Exception ex) {
@@ -150,7 +145,6 @@ public class SaveLoad {
         try {
             ArrayList<String> strArrayList = new ArrayList<>();
             String path = System.getProperty("user.dir") + "/src/PaperGame/res/ChampionFolder/ChampNames.txt";
-            System.out.println(System.getProperty("user.dir"));
             File file = new File(path);
             Scanner scan = new Scanner(file);
             while(scan.hasNextLine()){ strArrayList.add(scan.nextLine()); }
