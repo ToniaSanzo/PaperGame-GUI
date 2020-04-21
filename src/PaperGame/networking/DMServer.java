@@ -62,18 +62,24 @@ public class DMServer implements Runnable
      * Write UserID information to every UserID
      */
     public static void updateParty(){
+        UserID commID;
+
         // Communicate every UserID to each party member
         for(UserID currID : userIDs){
-            for(UserID commID : userIDs){
+            for(int i = 0; i < userIDs.size(); i++){
+                commID = userIDs.get(i);
+
                 // Prevent communicating the current UserID to itself
                 if(commID != currID){
                     System.out.println("Attempting to write " + commID.getName() + "-UserID to " + currID.getName() +
                             "-UserID");
                     try {
                         writeObject(currID, commID);
+                        try { Thread.sleep(200); } catch(InterruptedException ex){}
                     } catch(Exception ex){
                         System.out.println("Failed to write " + commID.getName() + "-UserID to " + currID.getName() +
                                 "-UserID");
+                        i--;
                     }
                 }
             }
