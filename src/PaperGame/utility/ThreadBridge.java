@@ -21,25 +21,25 @@ public class ThreadBridge {
     private Thread client;
 
     // Flags
-    private static boolean uidFlag            = false;           // Sets if myUID has not been set yet
-    private static boolean serverFlag         = false;           // Sets when User chooses DM option
-    private static boolean clientFlag         = false;           // Sets when User chooses Player option
-    private static boolean guiOn              = false;           // True while GUI is running
-    private static boolean gameFlag           = false;           // Sets when the DM starts the game
-    private static boolean ipFlag             = false;           // Sets when GUI receives a IP address
-    private static boolean partyFlag          = false;           // Sets when Client successfully joins party
-    private static boolean joinFail           = false;           // Sets when Client fails party join
-    private static boolean attemptedPartyJoin = false;           // Sets when Client attempts to join party
-    private static boolean tradeOfferFlag     = false;           // Sets when User has a trade offer
-    private static boolean tradeReceiveFlag   = false;           // Sets when User has receives a trade offer
-    private static boolean championNameFlag   = false;           // Sets when User knows what champion they are playing
+    private static boolean uidFlag            = false;                 // Sets if myUID has not been set yet
+    private static boolean serverFlag         = false;                 // Sets when User chooses DM option
+    private static boolean clientFlag         = false;                 // Sets when User chooses Player option
+    private static boolean guiOn              = false;                 // True while GUI is running
+    private static boolean gameFlag           = false;                 // Sets when the DM starts the game
+    private static boolean ipFlag             = false;                 // Sets when GUI receives a IP address
+    private static boolean partyFlag          = false;                 // Sets when Client successfully joins party
+    private static boolean joinFail           = false;                 // Sets when Client fails party join
+    private static boolean attemptedPartyJoin = false;                 // Sets when Client attempts to join party
+    private static boolean tradeOfferFlag     = false;                 // Sets when User has a trade offer
+    private static boolean tradeReceiveFlag   = false;                 // Sets when User has receives a trade offer
+    private static boolean championNameFlag   = false;                 // Sets when User knows what champion they are playing
 
     // Data communicated internally between the Network and GUI
-    private static String ipAddress           = null;            // IP Address received from GUI
-    private static String championName        = null;            // Current user's champion name
-    private static Stack<UserID> userIDs      = new Stack<>();   // UserIDs in the party
-    private static Inventory offerInventory   = new Inventory(); // Item's being offered in trade
-    private static Inventory receiveInventory = new Inventory(); // Item's being received in trade
+    private static String ipAddress           = null;                  // IP Address received from GUI
+    private static String championName        = null;                  // Current user's champion name
+    private static Stack<UserID> userIDs      = new Stack<UserID>();   // UserIDs in the party
+    private static Inventory offerInventory   = new Inventory();       // Item's being offered in trade
+    private static Inventory receiveInventory = new Inventory();       // Item's being received in trade
 
 
     /**
