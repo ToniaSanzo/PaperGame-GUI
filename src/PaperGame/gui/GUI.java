@@ -232,6 +232,10 @@ public class GUI extends Application implements Runnable {
     // Main JavaFX stage
     Stage stage;
 
+    // Timeline action handler, used by both the DM and Player
+    Timeline playerJoining;
+    boolean timelineRunning = false;
+
     // Objects used in the CreateUID Scene
     Scene crtUIDScene;
     Button crtUIDBtn;
@@ -251,8 +255,6 @@ public class GUI extends Application implements Runnable {
     Label dmRoomJoinIPAddr;
     ListView<String> dmRoomJoinStartUID;
     VBox dmRoomJoinPanel;
-    Timeline playerJoining;
-    boolean timelineRunning = false;
 
     // Player-StartUp_Screen objects
     Scene plyrStartUpScene;
@@ -288,7 +290,6 @@ public class GUI extends Application implements Runnable {
     Menu plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrSCMenu;
     Image plyrMstrChmpImg;
     ImageView plyrMstrChmpImgView;
-    Timeline actionHandler;
 
     // Objects used in the Player-Fluid-Inventory sub screen
     ListView<String> inventoryList;
@@ -784,12 +785,11 @@ public class GUI extends Application implements Runnable {
         if(currentChamp == null){ return; }
 
         // Handles asynchronous events
-        actionHandler = new Timeline(new KeyFrame(Duration.seconds(.3), new EventHandler<ActionEvent>() {
+        playerJoining = new Timeline(new KeyFrame(Duration.seconds(.3), new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 if(!ThreadBridge.userEmpty()){
                     userIDs.add(ThreadBridge.popUser());
-                    System.out.println(userIDs.get(userIDs.size()-1).getChampion() + " has been added to the GUI");
                 }
             }
         }));
@@ -1037,8 +1037,10 @@ public class GUI extends Application implements Runnable {
         // Set scene and show the stage
         stage.setScene(plyrMstrScene);
         stage.setTitle(currentChamp.getName());
+        playerJoining.setCycleCount(Timeline.INDEFINITE);
+        timelineRunning = true;
         stage.show();
-        actionHandler.play();
+        playerJoining.play();
     }
 
 
