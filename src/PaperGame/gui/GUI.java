@@ -1,5 +1,6 @@
 package PaperGame.gui;
 
+import PaperGame.entities.ChatMessage;
 import PaperGame.entities.Inventory;
 import PaperGame.entities.Item;
 import PaperGame.networking.UserID;
@@ -675,6 +676,7 @@ public class GUI extends Application implements Runnable {
     /**
      * Given a champion name, this method will load an already created champion, connect to a GUI and change the scene
      * to reflect that change.
+     *
      * @param fileName The name of the champion's object file contained inside ChampionFolder
      */
     private void selectChmp(String fileName){
@@ -701,6 +703,26 @@ public class GUI extends Application implements Runnable {
             currentChamp = SaveLoad.readChampFromFile(fileName);
             createMainChmpScene();
         }
+    }
+
+
+    /**
+     * Send message to users
+     */
+    private void sendMessage(){
+        // If the message is empty return
+        if(chatField.getText().length() == 0){
+            return;
+        }
+
+        // Send message as DM
+        if(currentChamp == null){
+            ThreadBridge.sendMessage(new ChatMessage("GM", chatField.getText()));
+            return;
+        }
+
+        // Send message as champion
+        ThreadBridge.sendMessage(new ChatMessage(currentChamp.getName(), chatField.getText()));
     }
 
 

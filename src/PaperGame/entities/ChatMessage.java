@@ -8,6 +8,15 @@ public class ChatMessage implements TransferredObject {
 
 
     /**
+     * Default constructor
+     */
+    public ChatMessage(){
+        name    = null;
+        message = null;
+    }
+
+
+    /**
      * Construct a chat message with a name and message
      *
      * @param name (String)    - Name of user sending message
@@ -66,7 +75,7 @@ public class ChatMessage implements TransferredObject {
      * @param byteBuffer (byte[]) - ChatMessage byte array
      * @return (ChatMessage)      - A de-serialized ChatMessage
      */
-    public static ChatMessage convertToInventory(byte [] byteBuffer){
+    public static ChatMessage convertToChatMessage(byte [] byteBuffer){
         Object object = null; // Instantiate object
 
         try {
@@ -87,4 +96,10 @@ public class ChatMessage implements TransferredObject {
         // Return ChatMessage contained within the byte array
         return (ChatMessage)object;
     }
+
+
+    /**
+     * Print ChatMessage
+     */
+    public void printChatMessage(){ System.out.println(name + ": " + message); }
 }

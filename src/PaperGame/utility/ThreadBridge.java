@@ -1,5 +1,6 @@
 package PaperGame.utility;
 
+import PaperGame.entities.ChatMessage;
 import PaperGame.entities.Inventory;
 import PaperGame.networking.UserID;
 
@@ -32,14 +33,17 @@ public class ThreadBridge {
     private static boolean attemptedPartyJoin = false;                 // Sets when Client attempts to join party
     private static boolean tradeOfferFlag     = false;                 // Sets when User has a trade offer
     private static boolean tradeReceiveFlag   = false;                 // Sets when User has receives a trade offer
-    private static boolean championNameFlag   = false;                 // Sets when User knows what champion they are playing
+    private static boolean championNameFlag   = false;                 // Sets when User knows what champion they are
+                                                                       // playing
+    private static boolean messageSendFlag    = false;                 // Sets when User's sending a message
 
     // Data communicated internally between the Network and GUI
     private static String ipAddress           = null;                  // IP Address received from GUI
     private static String championName        = null;                  // Current user's champion name
-    private static Stack<UserID> userIDs      = new Stack<UserID>();   // UserIDs in the party
+    private static Stack<UserID> userIDs      = new Stack<UserID>();        // UserIDs in the party
     private static Inventory offerInventory   = new Inventory();       // Item's being offered in trade
     private static Inventory receiveInventory = new Inventory();       // Item's being received in trade
+    private static ChatMessage messageSend    = new ChatMessage();     // Message being sent
 
 
     /**
@@ -385,5 +389,45 @@ public class ThreadBridge {
     public static synchronized void setChampionName(String championName){
         ThreadBridge.championName = championName;
         championNameFlag = true;
+    }
+
+
+    /**
+     * Send a message
+     *
+     * @param message (ChatMessage) - ChatMessage object being sent
+     */
+    public static synchronized void sendMessage(ChatMessage message){
+        messageSend = message;
+        messageSendFlag = true;
+    }
+
+
+    /**
+     * Get the send message
+     *
+     * @return (ChatMessage) - Message being sent
+     */
+    public static synchronized ChatMessage getMessageSend(){
+        messageSendFlag = false;
+        return messageSend;
+    }
+
+
+    /**
+     * Set messageSendFlag to false
+     */
+    public static synchronized void resetMessageSendFlag(){
+        messageSendFlag = false;
+    }
+
+
+    /**
+     * Status of messageSendFlag
+     *
+     * @return (boolean) - Current value of messageSendFlag
+     */
+    public static synchronized boolean checkMessageSendFlag(){
+        return messageSendFlag;
     }
 }
