@@ -121,14 +121,14 @@ public class DMServer implements Runnable
      * Network loop, checks to see if the server needs to write to the client, if not listen to the client,
      * than check to make sure the program's still on
      */
-    /*public static void clientRun(){
+    public static void serverRun(){
         TransferredObject transferredObject; // Used
 
         while(true){
 
-            // If the client has a write request
-            if(ThreadBridge.checkOfferFlag()){
-                // Attempt to write the offerInventory to the server, If the WRQ fails reset the getOfferInventory
+            // If the server has a write inventory request
+            /*if(ThreadBridge.checkOfferFlag()){
+                // Attempt to write the offerInventory to the client, If the WRQ fails reset the getOfferInventory
                 try{
                     writeObject(serverID, ThreadBridge.getOfferInventory());
                 } catch(RuntimeException ex){
@@ -137,7 +137,7 @@ public class DMServer implements Runnable
                 } catch(Exception ex){
                     ex.printStackTrace();
                 }
-            }
+            }*/
 
             // Listen to Server
             try{
@@ -154,7 +154,7 @@ public class DMServer implements Runnable
             if (!ThreadBridge.isGuiOn()) { return; }
         }
 
-    }*/
+    }
 
 
     /**

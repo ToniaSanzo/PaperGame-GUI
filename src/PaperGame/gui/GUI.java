@@ -287,7 +287,7 @@ public class GUI extends Application implements Runnable {
             plyrMstrHeadLbl, plyrMstrChestLbl, plyrMstrPantsLbl, plyrMstrGlovesLbl, plyrMstrBootsLbl, plyrMstrLvlLbl,
             plyrMstrHealthLbl, plyrMstrManaLbl, plyrMstrJewelryLbl;
     MenuBar plyrMstrMenuBar;
-    Menu plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrSCMenu;
+    Menu plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrSCMenu, plyrMstrChatMenu;
     Image plyrMstrChmpImg;
     ImageView plyrMstrChmpImgView;
 
@@ -314,6 +314,13 @@ public class GUI extends Application implements Runnable {
     String skillCheckDice, skillCheckStat, skillCheckOutput;
     VBox plyrSCDiceVB, plyrSCSkillVB, plyrSCVB;
     HBox plyrSCVBHB, plyrSCOutputHB;
+
+    // Objects used in the Player-DM-Fluid chat sub screen
+    ListView<String> chatBox;
+    TextField chatField;
+    Button chatBtn;
+    HBox chatHPane;
+    VBox chatPane;
 
 
     //----------------- METHODS ----------------------------------------------------------------------------------------
@@ -1004,10 +1011,21 @@ public class GUI extends Application implements Runnable {
         plyrSCOutputHB.setAlignment(Pos.CENTER);
         plyrSCVB = new VBox(40, plyrSCVBHB, plyrSCOutputHB);
 
+        // Set up Player-DM-Fluid chat sub screen
+        chatBox = new ListView<String>();
+        chatField = new TextField();
+        chatField.setPrefWidth(700);
+        chatField.setMaxWidth(700);
+        chatBtn = new Button("Send");
+        chatBtn.setOnAction(e -> System.out.println("Chat Btn"));
+        chatHPane = new HBox(50, chatField, chatBtn);
+        chatPane = new VBox(40, chatBox, chatHPane);
+
         // Set up the Champion Master MenuBar
         MenuItem dummyItemA = new MenuItem();
         MenuItem dummyItemB = new MenuItem();
         MenuItem dummyItemC = new MenuItem();
+        MenuItem dummyItemD = new MenuItem();
         plyrMstrTradeMenu = new Menu("Trade");
         plyrMstrTradeMenu.getItems().add(dummyItemA);
         plyrMstrTradeMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrTradeMenu.hide());
@@ -1023,8 +1041,13 @@ public class GUI extends Application implements Runnable {
         plyrMstrSCMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrSCMenu.hide());
         plyrMstrSCMenu.addEventHandler(Menu.ON_SHOWING, e -> plyrMstrSCMenu.fire());
         plyrMstrSCMenu.setOnAction( e -> plyrMstrBPanel.setCenter(plyrSCVB));
+        plyrMstrChatMenu = new Menu("Chat");
+        plyrMstrChatMenu.getItems().add(dummyItemD);
+        plyrMstrChatMenu.addEventHandler(Menu.ON_SHOWN, e -> plyrMstrChatMenu.hide());
+        plyrMstrChatMenu.addEventHandler(Menu.ON_SHOWING, e -> plyrMstrChatMenu.fire());
+        plyrMstrChatMenu.setOnAction( e -> plyrMstrBPanel.setCenter(chatPane));
         plyrMstrMenuBar = new MenuBar();
-        plyrMstrMenuBar.getMenus().addAll(plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrSCMenu);
+        plyrMstrMenuBar.getMenus().addAll(plyrMstrTradeMenu, plyrMstrInventoryMenu, plyrMstrSCMenu, plyrMstrChatMenu);
 
         // Set up the Champion Master panel
         plyrMstrBPanel = new BorderPane();
