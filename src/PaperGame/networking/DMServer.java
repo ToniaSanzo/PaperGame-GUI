@@ -53,7 +53,7 @@ public class DMServer implements Runnable
         updateParty();
 
         // Server's network loop
-        //serverRun();
+        serverRun();
 
         closeSocket(); // Close server socket
     }

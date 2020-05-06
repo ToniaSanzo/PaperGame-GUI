@@ -1039,7 +1039,7 @@ public class GUI extends Application implements Runnable {
         chatField.setPrefWidth(700);
         chatField.setMaxWidth(700);
         chatBtn = new Button("Send");
-        chatBtn.setOnAction(e -> System.out.println("Chat Btn"));
+        chatBtn.setOnAction(e -> sendMessage());
         chatHPane = new HBox(50, chatField, chatBtn);
         chatPane = new VBox(40, chatBox, chatHPane);
 
