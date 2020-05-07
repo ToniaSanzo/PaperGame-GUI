@@ -859,6 +859,11 @@ public class GUI extends Application implements Runnable {
                 if(!ThreadBridge.userEmpty()){
                     userIDs.add(ThreadBridge.popUser());
                 }
+
+                if(!ThreadBridge.checkMessageRcvdFlag()){
+                    message = ThreadBridge.getMessageRcvd();
+                    chatBox.getItems().add(message.toString());
+                }
             }
         }));
 
@@ -1074,6 +1079,9 @@ public class GUI extends Application implements Runnable {
 
         // Set up Player-DM-Fluid chat sub screen
         chatBox = new ListView<String>();
+        chatBox.setMaxWidth(900);
+        chatBox.setMouseTransparent( true );
+        chatBox.setFocusTraversable( false );
         chatField = new TextField();
         chatField.setPrefWidth(700);
         chatField.setMaxWidth(700);

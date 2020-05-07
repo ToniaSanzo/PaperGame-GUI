@@ -396,6 +396,10 @@ public class PlayerClient implements Runnable
                     userIDs.add((UserID)transferredObject);
                     ThreadBridge.pushUser(userIDs.get(userIDs.size() - 1));
                 }
+
+                if(transferredObject.getType() == TransferredObject.CHAT_MESSAGE){
+                    ThreadBridge.receiveMessage((ChatMessage)transferredObject);
+                }
             } catch(Exception ex){ }
 
             // Sleep
