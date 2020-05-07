@@ -763,6 +763,9 @@ public class GUI extends Application implements Runnable {
 
         // Send message as champion
         ThreadBridge.sendMessage(new ChatMessage(currentChamp.getName(), chatField.getText()));
+
+        // update chatField to reflect message sent
+        chatBox.getItems().add(new ChatMessage("[Me]", chatField.getText()).toString());
     }
 
 
