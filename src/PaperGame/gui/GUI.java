@@ -753,6 +753,9 @@ public class GUI extends Application implements Runnable {
             return;
         }
 
+        // update chatField to reflect message sent
+        chatBox.getItems().add(new ChatMessage("[Me]", chatField.getText()).toString());
+
         // Send message as DM
         if(currentChamp == null){
             ThreadBridge.sendMessage(new ChatMessage("GM", chatField.getText()));
@@ -761,9 +764,6 @@ public class GUI extends Application implements Runnable {
 
         // Send message as champion
         ThreadBridge.sendMessage(new ChatMessage(currentChamp.getName(), chatField.getText()));
-
-        // update chatField to reflect message sent
-        chatBox.getItems().add(new ChatMessage("[Me]", chatField.getText()).toString());
     }
 
 
