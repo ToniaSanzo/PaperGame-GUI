@@ -530,7 +530,7 @@ public class GUI extends Application implements Runnable {
         timeline = new Timeline(new KeyFrame(Duration.seconds(.3), new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if(!ThreadBridge.checkMessageRcvdFlag()){
+                if(ThreadBridge.checkMessageRcvdFlag()){
                     message = ThreadBridge.getMessageRcvd();
 
                     if(message != null) {
@@ -863,7 +863,7 @@ public class GUI extends Application implements Runnable {
                     userIDs.add(ThreadBridge.popUser());
                 }
 
-                if(!ThreadBridge.checkMessageRcvdFlag()){
+                if(ThreadBridge.checkMessageRcvdFlag()){
                     message = ThreadBridge.getMessageRcvd();
                     if(message != null) {
                         chatBox.getItems().add(message.toString());
