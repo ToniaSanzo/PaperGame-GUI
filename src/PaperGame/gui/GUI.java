@@ -532,7 +532,10 @@ public class GUI extends Application implements Runnable {
             public void handle(ActionEvent event) {
                 if(!ThreadBridge.checkMessageRcvdFlag()){
                     message = ThreadBridge.getMessageRcvd();
-                    chatBox.getItems().add(message.toString());
+
+                    if(message != null) {
+                        chatBox.getItems().add(message.toString());
+                    }
                 }
             }
         }));
@@ -862,7 +865,9 @@ public class GUI extends Application implements Runnable {
 
                 if(!ThreadBridge.checkMessageRcvdFlag()){
                     message = ThreadBridge.getMessageRcvd();
-                    chatBox.getItems().add(message.toString());
+                    if(message != null) {
+                        chatBox.getItems().add(message.toString());
+                    }
                 }
             }
         }));
