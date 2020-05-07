@@ -169,9 +169,17 @@ public class DMServer implements Runnable
             // Listen to Server
             try{
                 transferredObject = listen();
+
+                // Send received inventory to GUI
                 if(transferredObject.getType() == Inventory.INVENTORY){
                     ThreadBridge.setReceiveInventory((Inventory)transferredObject);
                 }
+
+                // Send received chat message to GUI
+                if(transferredObject.getType() == ChatMessage.CHAT_MESSAGE){
+                    ThreadBridge.receiveMessage((ChatMessage)transferredObject);
+                }
+
             } catch(Exception ex){ }
 
             // Sleep

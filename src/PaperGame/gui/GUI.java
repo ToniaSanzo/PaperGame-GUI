@@ -234,7 +234,7 @@ public class GUI extends Application implements Runnable {
     Stage stage;
 
     // Timeline action handler, used by both the DM and Player
-    Timeline playerJoining;
+    Timeline timeline;
     boolean timelineRunning = false;
 
     // Objects used in the CreateUID Scene
@@ -322,6 +322,8 @@ public class GUI extends Application implements Runnable {
     Button chatBtn;
     HBox chatHPane;
     VBox chatPane;
+    ChatMessage message;
+    Scene dmChatScene;
 
 
     //----------------- METHODS ----------------------------------------------------------------------------------------
@@ -481,7 +483,7 @@ public class GUI extends Application implements Runnable {
      * Method called when the user chooses the Dungeon Master button, in the Dungeon Master or Player scene
      */
     private void dmOption() {
-        playerJoining = new Timeline(new KeyFrame(Duration.seconds(.3), new EventHandler<ActionEvent>() {
+        timeline = new Timeline(new KeyFrame(Duration.seconds(.3), new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 if(!ThreadBridge.userEmpty()){
@@ -504,8 +506,9 @@ public class GUI extends Application implements Runnable {
         dmRoomJoinStart  = new Button("Start");
         dmRoomJoinStart.setOnAction(e -> {
             ThreadBridge.gameOn();
-            playerJoining.stop();
+            timeline.stop();
             timelineRunning = false;
+            dmChatScreen();
         });
         dmRoomJoinPanel = new VBox(50, dmRoomJoinIPAddr, dmRoomJoinStartUID, dmRoomJoinStart);
         dmRoomJoinPanel.setAlignment(Pos.CENTER);
@@ -514,10 +517,46 @@ public class GUI extends Application implements Runnable {
         stage.setTitle("Join Room");
         stage.show();
 
-
-        playerJoining.setCycleCount(Timeline.INDEFINITE);
+        timeline.setCycleCount(Timeline.INDEFINITE);
         timelineRunning = true;
-        playerJoining.play();
+        timeline.play();
+    }
+
+
+    /**
+     * Set Dungeon Master chat screen
+     */
+    private void dmChatScreen(){
+        timeline = new Timeline(new KeyFrame(Duration.seconds(.3), new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if(!ThreadBridge.checkMessageRcvdFlag()){
+                    message = ThreadBridge.getMessageRcvd();
+                    chatBox.getItems().add(message.toString());
+                }
+            }
+        }));
+
+        // Initialize DM chat screen
+        chatBox = new ListView<String>();
+        chatBox.setMaxWidth(900);
+        chatBox.setMouseTransparent( true );
+        chatBox.setFocusTraversable( false );
+        chatField = new TextField();
+        chatField.setPrefWidth(700);
+        chatField.setMaxWidth(700);
+        chatBtn = new Button("Send");
+        chatBtn.setOnAction(e -> sendMessage());
+        chatHPane = new HBox(50, chatField, chatBtn);
+        chatPane = new VBox(40, chatBox, chatHPane);
+        dmChatScene = new Scene(chatPane, 1000, 700);
+        stage.setScene(dmChatScene);
+        stage.setTitle("Chat");
+        stage.show();
+
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        timelineRunning = true;
+        timeline.play();
     }
 
 
@@ -559,7 +598,7 @@ public class GUI extends Application implements Runnable {
         if(close) {
             stage.close();
             ThreadBridge.guiOff();
-            if(timelineRunning){ playerJoining.stop(); }
+            if(timelineRunning){ timeline.stop(); }
         }
     }
 
@@ -814,7 +853,7 @@ public class GUI extends Application implements Runnable {
         if(currentChamp == null){ return; }
 
         // Handles asynchronous events
-        playerJoining = new Timeline(new KeyFrame(Duration.seconds(.3), new EventHandler<ActionEvent>() {
+        timeline = new Timeline(new KeyFrame(Duration.seconds(.3), new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 if(!ThreadBridge.userEmpty()){
@@ -1082,10 +1121,10 @@ public class GUI extends Application implements Runnable {
         // Set scene and show the stage
         stage.setScene(plyrMstrScene);
         stage.setTitle(currentChamp.getName());
-        playerJoining.setCycleCount(Timeline.INDEFINITE);
+        timeline.setCycleCount(Timeline.INDEFINITE);
         timelineRunning = true;
         stage.show();
-        playerJoining.play();
+        timeline.play();
     }
 
 

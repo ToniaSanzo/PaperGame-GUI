@@ -35,7 +35,8 @@ public class ThreadBridge {
     private static boolean tradeReceiveFlag   = false;                 // Sets when User has receives a trade offer
     private static boolean championNameFlag   = false;                 // Sets when User knows what champion they are
                                                                        // playing
-    private static boolean messageSendFlag    = false;                 // Sets when User's sending a message
+    private static boolean messageSendFlag    = false;                 // Sets when a user sends a message
+    private static boolean messageRcvFlag     = false;                 // Sets when the user receives a message
 
     // Data communicated internally between the Network and GUI
     private static String ipAddress           = null;                  // IP Address received from GUI
@@ -44,6 +45,7 @@ public class ThreadBridge {
     private static Inventory offerInventory   = new Inventory();       // Item's being offered in trade
     private static Inventory receiveInventory = new Inventory();       // Item's being received in trade
     private static ChatMessage messageSend    = new ChatMessage();     // Message being sent
+    private static ChatMessage messageRcvd    = new ChatMessage();     // Message received
 
 
     /**
@@ -404,6 +406,17 @@ public class ThreadBridge {
 
 
     /**
+     * Receive message
+     *
+     * @param message (ChatMessage) - ChatMessage object received
+     */
+    public static synchronized void receiveMessage(ChatMessage message){
+        messageRcvd = message;
+        messageRcvFlag = true;
+    }
+
+
+    /**
      * Get the send message
      *
      * @return (ChatMessage) - Message being sent
@@ -415,10 +428,13 @@ public class ThreadBridge {
 
 
     /**
-     * Set messageSendFlag to false
+     * Get the receive message
+     *
+     * @return (ChatMessage) - Message received
      */
-    public static synchronized void resetMessageSendFlag(){
-        messageSendFlag = false;
+    public static synchronized ChatMessage getMessageRcvd(){
+        messageRcvFlag = false;
+        return messageRcvd;
     }
 
 
@@ -430,4 +446,12 @@ public class ThreadBridge {
     public static synchronized boolean checkMessageSendFlag(){
         return messageSendFlag;
     }
+
+
+    /**
+     * Statuc of messageRcvFlag
+     *
+     * @return (boolean) - Current value of messageRcvFlag
+     */
+    public static synchronized boolean checkMessageRcvdFlag() { return messageRcvFlag; }
 }

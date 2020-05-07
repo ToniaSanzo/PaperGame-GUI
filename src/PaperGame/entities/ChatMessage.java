@@ -102,4 +102,13 @@ public class ChatMessage implements TransferredObject {
      * Print ChatMessage
      */
     public void printChatMessage(){ System.out.println(name + ": " + message); }
+
+
+    /**
+     * Convert ChatMessage to String
+     *
+     * @return (String) - String representation of ChatMessage
+     */
+    @Override
+    public String toString(){ return name + ":  " + message; }
 }
