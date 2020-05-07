@@ -541,8 +541,6 @@ public class GUI extends Application implements Runnable {
         // Initialize DM chat screen
         chatBox = new ListView<String>();
         chatBox.setMaxWidth(900);
-        chatBox.setMouseTransparent( true );
-        chatBox.setFocusTraversable( false );
         chatField = new TextField();
         chatField.setPrefWidth(700);
         chatField.setMaxWidth(700);
@@ -1085,8 +1083,6 @@ public class GUI extends Application implements Runnable {
         // Set up Player-DM-Fluid chat sub screen
         chatBox = new ListView<String>();
         chatBox.setMaxWidth(900);
-        chatBox.setMouseTransparent( true );
-        chatBox.setFocusTraversable( false );
         chatField = new TextField();
         chatField.setPrefWidth(700);
         chatField.setMaxWidth(700);
